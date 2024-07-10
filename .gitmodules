@@ -1,0 +1,3 @@
+[submodule "awave2"]
+	path = awave2
+	url = https://github.com/anthonyozerov/awave2
