@@ -70,7 +70,7 @@ print(cnnwave.dwt1.h1)
 
 
 
-wandb_logger = WandbLogger(project="awd-dev")
+# wandb_logger = WandbLogger(project="awd-dev")
 
 with torch.no_grad():
     torch.cuda.empty_cache()
@@ -79,7 +79,7 @@ gc.collect()
 trainer = L.Trainer(
     limit_train_batches=10,
     max_epochs=300,  # accumulate_grad_batches=4,
-    logger=wandb_logger,
+    # logger=wandb_logger,
     log_every_n_steps=1,
 )
 trainer.fit(model=cnnwave, train_dataloaders=trainloader, val_dataloaders=valloader)

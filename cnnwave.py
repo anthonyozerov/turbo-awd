@@ -50,15 +50,24 @@ class CNNWave(L.LightningModule):
         x_resid = deepcopy(x) - x_recon.detach()
         y_recon = self.cnn(x_recon + x_resid)
 
+        sample = 100
+
+        # flatten to 2D (batch x output)
+        y_flat = torch.flatten(y_recon, start_dim=1, end_dim=-1)
+        # subsample outputs if requested
+        n_outputs = y_flat.shape[1]
+        if sample is not None:
+            y_flat = y_flat[:, torch.randint(0, n_outputs, (sample,))]
+
         if self.attributer is not None:
             if self.verbose:
                 print("constructing fdata, computing attrs")
             if self.same_wt:
-                fdata = ForwardDataDWT(x_coeffs, y_recon, sample=100)
+                fdata = ForwardDataDWT(x_coeffs, y_flat)
                 attrs = self.attributer(fdata)
             else:
                 fdatas = [
-                    ForwardDataDWT(x_coeffs[i], y_recon, sample=50)
+                    ForwardDataDWT(x_coeffs[i], y_flat)
                     for i in range(self.n_dwts)
                 ]
                 attrs = [self.attributer(fdata) for fdata in fdatas]
@@ -71,7 +80,7 @@ class CNNWave(L.LightningModule):
         if self.same_wt:
             loss = self.loss(x, x_recon, wt=self.dwt, attrs=attrs)
         else:
-            loss = self.loss(x, x_recon, wts=[self.dwt0, self.dwt1], attrs=attrs)
+            loss = self.loss(x, x_recon, wts=self.dwts, attrs=attrs)
         self.log_dict(loss)
 
         return loss["loss"]
@@ -80,6 +89,6 @@ class CNNWave(L.LightningModule):
         if self.same_wt:
             params = list(self.dwt.parameters())
         else:
-            params = list(self.dwt0.parameters()) + list(self.dwt1.parameters())
+            params = sum([list(wt.parameters()) for wt in self.dwts], [])
         optimizer = torch.optim.Adam(params, lr=1e-3)
         return optimizer
