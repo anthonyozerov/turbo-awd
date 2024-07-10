@@ -69,7 +69,6 @@ print(cnnwave.dwt1.h0)
 print(cnnwave.dwt1.h1)
 
 
-
 # wandb_logger = WandbLogger(project="awd-dev")
 
 with torch.no_grad():

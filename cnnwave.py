@@ -67,8 +67,7 @@ class CNNWave(L.LightningModule):
                 attrs = self.attributer(fdata)
             else:
                 fdatas = [
-                    ForwardDataDWT(x_coeffs[i], y_flat)
-                    for i in range(self.n_dwts)
+                    ForwardDataDWT(x_coeffs[i], y_flat) for i in range(self.n_dwts)
                 ]
                 attrs = [self.attributer(fdata) for fdata in fdatas]
                 attrs = sum(attrs, [])
