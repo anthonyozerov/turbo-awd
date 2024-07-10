@@ -26,9 +26,8 @@ cnn = torch.load("trained-cnn/CNN.pt")
 cnn.eval()
 
 
-trainset, testset, input_normalized_val_torch, output_normalized_val_torch = load_data(
-    None
-)
+trainset, testset = load_data()
+
 
 trainloader = DataLoader(trainset, batch_size=10, shuffle=True, num_workers=1)
 valloader = DataLoader(testset, batch_size=1, shuffle=True, num_workers=1)  # valN

@@ -34,7 +34,7 @@ class CNNWave(L.LightningModule):
             x_coeffs = self.dwt(x)
         else:
             x_coeffs = [
-                self.dwts[i](x[:, i, :, :]).unsqueeze(1) for i in range(self.n_dwts)
+                self.dwts[i](x[:, i, :, :].unsqueeze(1)) for i in range(self.n_dwts)
             ]
 
         if self.verbose:

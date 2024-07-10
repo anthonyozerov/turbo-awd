@@ -5,8 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import random_split
-
+from torch.utils.data import random_split, TensorDataset, DataLoader
 import h5py
 
 # General variables
@@ -26,14 +25,14 @@ numDataset = 1  # number of dataset / 2
 new = 0  # 1 - new CNN; 0 - read from pre-trained CNN
 
 
-def load_data(data_dir):
+def load_data(data_dir='fdns-data'):
     input_normalized = np.zeros([NT, Nlon, Nlat, n_channels], np.float32)
     output_normalized = np.zeros([NT, Nlon, Nlat, n_channels_out], np.float32)
     input_normalized_val = np.zeros([valN, Nlon, Nlat, n_channels], np.float32)
     output_normalized_val = np.zeros([valN, Nlon, Nlat, n_channels_out], np.float32)
 
     # Training data input
-    Filename = "fdns-data/FDNS Psi W_train.mat"
+    Filename = f"{data_dir}/FDNS Psi W_train.mat"
     with h5py.File(Filename, "r") as f:
         Psi = np.array(f["Psi"], np.float32)
 
@@ -41,7 +40,7 @@ def load_data(data_dir):
         del Psi
         f.close()
 
-    Filename = "fdns-data/FDNS Psi W_train.mat"
+    Filename = f"{data_dir}/FDNS Psi W_train.mat"
     with h5py.File(Filename, "r") as f:
         w = np.array(f["W"], np.float32)
 
@@ -50,7 +49,7 @@ def load_data(data_dir):
         f.close()
 
     # Validation data input
-    Filename = "fdns-data/FDNS Psi W_val.mat"
+    Filename = f"{data_dir}/FDNS Psi W_val.mat"
     with h5py.File(Filename, "r") as f:
         Psi = np.array(f["Psi"], np.float32)
 
@@ -58,7 +57,7 @@ def load_data(data_dir):
         del Psi
         f.close()
 
-    Filename = "fdns-data/FDNS Psi W_val.mat"
+    Filename = f"{data_dir}/FDNS Psi W_val.mat"
     with h5py.File(Filename, "r") as f:
         w = np.array(f["W"], np.float32)
 
@@ -70,7 +69,7 @@ def load_data(data_dir):
     input_normalized_val = np.moveaxis(input_normalized_val, -1, 1)
 
     # Training data output
-    Filename = "fdns-data/FDNS PI_train.mat"
+    Filename = f"{data_dir}/FDNS PI_train.mat"
     with h5py.File(Filename, "r") as f:
         PI = np.array(f["PI"], np.float32)
         output_normalized[:, :, :, 0] = np.moveaxis(PI[:, :, :trainN], -1, 0)
@@ -78,7 +77,7 @@ def load_data(data_dir):
         f.close()
 
     # Validation data output
-    Filename = "fdns-data/FDNS PI_val.mat"
+    Filename = f"{data_dir}/FDNS PI_val.mat"
     with h5py.File(Filename, "r") as f:
         PI = np.array(f["PI"], np.float32)
         output_normalized_val[:, :, :, 0] = np.moveaxis(PI[:, :, -valN:], -1, 0)
@@ -102,7 +101,6 @@ def load_data(data_dir):
         output_normalized_val
     ).float()  # .cuda()
 
-    from torch.utils.data import TensorDataset, DataLoader
 
     train_dataset = TensorDataset(
         input_normalized_torch, output_normalized_torch
@@ -110,7 +108,6 @@ def load_data(data_dir):
     val_dataset = TensorDataset(
         input_normalized_val_torch, output_normalized_val_torch
     )  # create your val datset
-    # my_dataloader = DataLoader(my_dataset) # create your dataloader
 
     del input_normalized_torch
     del output_normalized_torch
@@ -122,6 +119,4 @@ def load_data(data_dir):
     return (
         train_dataset,
         val_dataset,
-        input_normalized_val_torch,
-        output_normalized_val_torch,
     )
