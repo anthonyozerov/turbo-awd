@@ -25,7 +25,7 @@ numDataset = 1  # number of dataset / 2
 new = 0  # 1 - new CNN; 0 - read from pre-trained CNN
 
 
-def load_data(data_dir='fdns-data'):
+def load_data(data_dir="fdns-data"):
     input_normalized = np.zeros([NT, Nlon, Nlat, n_channels], np.float32)
     output_normalized = np.zeros([NT, Nlon, Nlat, n_channels_out], np.float32)
     input_normalized_val = np.zeros([valN, Nlon, Nlat, n_channels], np.float32)
@@ -100,7 +100,6 @@ def load_data(data_dir='fdns-data'):
     output_normalized_val_torch = torch.from_numpy(
         output_normalized_val
     ).float()  # .cuda()
-
 
     train_dataset = TensorDataset(
         input_normalized_torch, output_normalized_torch
