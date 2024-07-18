@@ -1,0 +1,28 @@
+which: 'pi'
+data:
+  train_dir: '../../fdns-data'
+  train_N: 1500
+  train_file: 'FDNS PI_train.mat'
+  key: 'PI'
+dwt:
+  padding_mode: 'zero'
+  learn_dual: true  # true for biorthogonal wavelets
+  init_wavelet: 'bior3.1'
+dataloader:
+  batch_size: 8
+  shuffle: true
+  num_workers: 2
+checkpoint:
+  save_top_k: 3
+  monitor: 'loss'
+  mode: 'min'
+  filename: 'ddw-base-{epoch:02d}'
+  dirpath: 'checkpoints'
+trainer:
+  max_epochs: 1000
+optimizer:
+  lr: 0.001
+wandb:
+  project: 'awd-dev'
+  name: 'ddw-base'
+  group: 'ddw-init-experiment'

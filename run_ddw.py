@@ -1,79 +1,84 @@
 import sys
-
-import lightning as L
+import os
+import gc
+import yaml
+import numpy as np
+import h5py
 import torch
-from lightning.pytorch.callbacks import ModelCheckpoint
+import lightning as L
 
-from torch.utils.data import DataLoader
+from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger
+
+from torch.utils.data import DataLoader, TensorDataset
+
 from awave2.dwt.dwt1d import DWT1d, DWT1dConfig
 from awave2.dwt.loss import DWTLossConfig
 from awave2.ddw.loss import DDWLossConfig
 
-from fdns_data import load_data
-
-import gc
-
-from lightning.pytorch.loggers import WandbLogger
-
 from ddw import DDW
 
+config_path = sys.argv[1]
 
-which = sys.argv[1]
+assert os.path.exists(config_path), f"Invalid config path: {config_path}"
+config = yaml.safe_load(open(config_path, "r"))
 
-if which not in ["input", "output"]:
-    print("Invalid argument")
-    sys.exit(1)
-
+which = config["which"]
 print(which)
 
 torch.cuda.empty_cache()
 gc.collect()
 
-trainset, testset = load_data()
+train_dir = config["data"]["train_dir"]
+train_file = config["data"]["train_file"]
+train_path = f"{train_dir}/{train_file}"
+key = config["data"]["key"]
 
-trainloader = DataLoader(trainset, batch_size=8, shuffle=True, num_workers=2)
-valloader = DataLoader(testset, batch_size=1, shuffle=True, num_workers=2)  # valN
+with h5py.File(train_path, "r") as f:
+    data = np.array(f[key], np.float32)
+
+Nlon = data.shape[0]
+Nlat = data.shape[1]
+
+train_N = config["data"]["train_N"]
+train_mat = np.zeros([train_N, Nlon, Nlat, 1])
+
+
+# data is [Nlon, Nlat, N]
+train_mat[:, :, :, 0] = np.moveaxis(data[:, :, :train_N], -1, 0)
+# train_mat is [train_N, Nlon, Nlat, 1]
+train_mat = np.moveaxis(train_mat, -1, 1)
+# now train_mat is [train_N, 1, Nlon, Nlat]
+assert train_mat.shape == (train_N, 1, Nlon, Nlat)
+
+train_mat = torch.from_numpy(train_mat).float()
+trainset = TensorDataset(train_mat)
+
+print(config["dataloader"])
+
+trainloader = DataLoader(trainset, **config["dataloader"])
 batch = next(iter(trainloader))
 
-dwt_config = DWT1dConfig(
-    dim_size=batch[0].shape[-1],
-    dim=-1,
-    init_wavelet="bior3.1",
-    padding_mode="zero",
-    learn_dual=True,  # True for biorthogonal wavelets
-)
+dwt_config = DWT1dConfig(dim_size=batch[0].shape[-1], dim=-1, **config["dwt"])
 
 dwt_loss_config = DWTLossConfig()
 ddw_loss_config = DDWLossConfig(wt_loss_config=DWTLossConfig())
 ddw_loss = ddw_loss_config.get_loss_module()
 
-if which == "input":
-    dwt0 = DWT1d(dwt_config)
-    dwt1 = DWT1d(dwt_config)
-    dwts = [dwt0, dwt1]
-else:
-    dwt = DWT1d(dwt_config)
-    dwts = [dwt]
+dwt = DWT1d(dwt_config)
+dwts = [dwt]
 
-ddw = DDW(loss=ddw_loss, dwts=dwts, which=which, verbose=True)
+ddw = DDW(loss=ddw_loss, dwts=dwts, optimizer_config=config["optimizer"], verbose=True)
 
-checkpoint_callback = ModelCheckpoint(
-    monitor="loss",
-    dirpath=f"{which}",
-    filename="ddw-{epoch:02d}",
-    save_top_k=3,
-    mode="min",
-)
+checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
 
-wandb_logger = WandbLogger(name=f"{which}", project="awd-dev")
+wandb_logger = WandbLogger(config=config, **config["wandb"])
+
 trainer = L.Trainer(
-    max_epochs=1000,  # accumulate_grad_batches=4,
-    logger=wandb_logger,
-    log_every_n_steps=1,
-    callbacks=[checkpoint_callback],
+    logger=wandb_logger, callbacks=[checkpoint_callback], **config["trainer"]
 )
 
-trainer.fit(model=ddw, train_dataloaders=trainloader, val_dataloaders=valloader)
+trainer.fit(model=ddw, train_dataloaders=trainloader)
 
 gc.collect()
 torch.cuda.empty_cache()
