@@ -1,0 +1,14 @@
+which: 'pi'
+data:
+  train_dir: 'fdns-data'
+  train_N: 1500
+  train_file: 'FDNS PI_train.mat'
+  key: 'PI'
+dwt:
+  padding_mode: 'zero'
+  learn_dual: true  # true for biorthogonal wavelets
+  init_wavelet: 'bior1.5'
+dataloader:
+  batch_size: 128
+  shuffle: true
+  num_workers: 2
