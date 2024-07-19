@@ -54,8 +54,6 @@ assert train_mat.shape == (train_N, 1, Nlon, Nlat)
 train_mat = torch.from_numpy(train_mat).float()
 trainset = TensorDataset(train_mat)
 
-print(config["dataloader"])
-
 trainloader = DataLoader(trainset, **config["dataloader"])
 batch = next(iter(trainloader))
 
