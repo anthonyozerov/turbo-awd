@@ -28,12 +28,15 @@ class CNNOutWave(L.LightningModule):
 
         if self.verbose:
             print("computing loss")
-        loss = self.loss(y_cnn_coeffs, y_coeffs)
+        mse_regular = self.loss(y_cnn, y)
+        mse_wavelet = self.loss(y_cnn_coeffs, y_coeffs)
+        mse_total = mse_regular + mse_wavelet
 
-        self.log_dict({"MSEloss": loss})
+        self.log_dict({"mse_regular": mse_regular,
+                       "mse_wavelet": mse_wavelet,
+                       "mse_total": mse_total})
 
-        print(loss)
-        return loss
+        return mse_wavelet
 
     def configure_optimizers(self):
         params = list(self.cnn.parameters())
