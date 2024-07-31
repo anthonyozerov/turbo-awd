@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class Net(nn.Module):
-    def __init__(self, l1=64, l2=5):
+    def __init__(self, n_channels=2, n_channels_out=1, l1=64, l2=5):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(
             in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same"

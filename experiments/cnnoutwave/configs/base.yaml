@@ -1,0 +1,28 @@
+data:
+  train_N: 1500
+  train_input_dir: 'fdns-data'
+  train_input_file: 'FDNS Psi W_train.mat'
+  train_output_dir: 'fdns-data'
+  train_output_file: 'FDNS PI_train.mat'
+cnn:
+  cnn_path: 'trained-cnn/CNN.pt'
+ddw:
+  ddw_dir: 'checkpoints/ddw-pi-bior2.6'
+dataloader:
+  batch_size: 256
+  shuffle: true
+  num_workers: 8
+checkpoint:
+  save_top_k: 3
+  monitor: 'loss'
+  mode: 'min'
+  filename: 'cnnoutwave-base-{epoch:02d}'
+  dirpath: 'checkpoints'
+trainer:
+  max_epochs: 1000
+optimizer:
+  lr: 0.001
+wandb:
+  project: 'awd-dev'
+  name: 'cnnoutwave-base'
+  group: 'cnnoutwave-experiment'
