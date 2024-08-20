@@ -7,11 +7,11 @@ data:
 cnn:
   cnn_path: 'trained-cnn/CNN.pt'
 ddw:
-  ddw_dir: 'checkpoints/ddw-pi-bior3.9'
+  ddw_dir: 'checkpoints/ddw-pi-bior2.6'
 dataloader:
   batch_size: 256
   shuffle: true
-  num_workers: 8
+  num_workers: 4
 checkpoint:
   save_top_k: 3
   monitor: 'loss'
@@ -21,7 +21,7 @@ checkpoint:
 trainer:
   max_epochs: 1000
 optimizer:
-  lr: 0.001
+  lr: 0.00001
 wandb:
   project: 'awd-dev'
   name: 'cnnoutwave-base'
