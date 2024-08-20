@@ -7,7 +7,7 @@ data:
 cnn:
   cnn_path: 'trained-cnn/CNN.pt'
 ddw:
-  ddw_dir: 'checkpoints/ddw-pi-bior2.6'
+  ddw_dir: 'checkpoints/ddw-pi-bior3.9'
 dataloader:
   batch_size: 256
   shuffle: true
