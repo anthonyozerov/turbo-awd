@@ -4,6 +4,7 @@ data:
   train_input_file: 'FDNS_big_train.mat'
   train_output_file: 'FDNS PI_train.mat'
   keys: ['psi', 'omega']
+residual: 'gm2'
 dataloader_train:
   batch_size: 128
   shuffle: true
@@ -16,7 +17,7 @@ checkpoint:
   save_top_k: 3
   monitor: 'loss'
   mode: 'min'
-  filename: 'cnn-orig-{epoch:02d}'
+  filename: 'cnn-orig-resid-gm2-{epoch:02d}'
   dirpath: 'checkpoints'
 trainer:
   max_epochs: 1000
@@ -24,5 +25,5 @@ optimizer:
   lr: 0.00002
 wandb:
   project: 'awd-dev'
-  name: 'cnn-orig'
+  name: 'cnn-orig-resid-gm2'
   group: 'cnn'
