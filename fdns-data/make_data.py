@@ -22,7 +22,7 @@ Kx, Ky, Ksq, _, invKsq = initialize_wavenumbers_rfft2(nx, nx, Lx, Lx, INDEXING='
 normalization = loadmat('Normalization_coefficients_train.mat')
 with h5py.File('FDNS Psi W_train.mat', 'r') as f:
     psi_data = np.array(f['Psi'], np.float32) * normalization['SDEV_IP'][0][0] + normalization['MEAN_IP'][0][0]
-    omega_data = np.array(f['W'], np.float32) * normalization['SDEV_IP'][0][0] + normalization['MEAN_IP'][0][0]
+    omega_data = np.array(f['W'], np.float32) * normalization['SDEV_IW'][0][0] + normalization['MEAN_IW'][0][0]
 with h5py.File('FDNS U V_train.mat', 'r') as f:
     u_data = np.array(f['U'], np.float32) * normalization['SDEV_IU'][0][0] + normalization['MEAN_IU'][0][0]
     v_data = np.array(f['V'], np.float32) * normalization['SDEV_IV'][0][0] + normalization['MEAN_IV'][0][0]
