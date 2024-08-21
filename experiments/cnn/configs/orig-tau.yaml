@@ -19,7 +19,7 @@ checkpoint:
   filename: 'cnn-orig-tau-{epoch:02d}'
   dirpath: 'checkpoints'
 trainer:
-  max_epochs: 1000
+  max_epochs: 4000
 optimizer:
   lr: 0.00002
 wandb:
