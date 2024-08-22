@@ -20,6 +20,7 @@ from cnn import CNN
 from net import Net
 
 config_path = sys.argv[1]
+name = config_path.split('/')[-1].split('.')[0]
 
 assert os.path.exists(config_path), f"Invalid config path: {config_path}"
 config = yaml.safe_load(open(config_path, "r"))
@@ -98,11 +99,14 @@ valloader = DataLoader(valset, **config["dataloader_val"])
 cnn_module = Net(n_channels=n_channels, n_channels_out=1, **config['cnn'])
 cnn = CNN(cnn=cnn_module, optimizer_config=config["optimizer"], verbose=True)
 
+config["checkpoint"]["filename"] = name + '-{epoch:02d}'
 checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
 
 # if slurm
 if "SLURM_JOB_ID" in os.environ:
     config['slurm_job_id'] = os.environ['SLURM_JOB_ID']
+
+config["wandb"]["name"] = name
 wandb_logger = WandbLogger(config=config, **config["wandb"])
 
 trainer = L.Trainer(
