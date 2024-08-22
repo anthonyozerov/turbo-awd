@@ -95,7 +95,7 @@ batch = next(iter(trainloader))
 
 valloader = DataLoader(valset, **config["dataloader_val"])
 
-cnn_module = Net(n_channels=n_channels, n_channels_out=1, l1=64, l2=5)
+cnn_module = Net(n_channels=n_channels, n_channels_out=1, **config['cnn'])
 cnn = CNN(cnn=cnn_module, optimizer_config=config["optimizer"], verbose=True)
 
 checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
