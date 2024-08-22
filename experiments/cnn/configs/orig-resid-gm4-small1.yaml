@@ -21,7 +21,7 @@ checkpoint:
   save_top_k: 3
   monitor: 'loss'
   mode: 'min'
-  filename: 'cnn-orig-resid-gm2-{epoch:02d}'
+  filename: 'cnn-orig-resid-gm4-small1{epoch:02d}'
   dirpath: 'checkpoints'
 trainer:
   max_epochs: 4000
@@ -29,5 +29,5 @@ optimizer:
   lr: 0.00002
 wandb:
   project: 'awd-dev'
-  name: 'cnn-orig-resid-gm2'
+  name: 'cnn-orig-resid-gm4-small1'
   group: 'cnn'
