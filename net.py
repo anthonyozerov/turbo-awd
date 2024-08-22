@@ -17,6 +17,7 @@ class Net(nn.Module):
                     in_channels=l1, out_channels=l1, kernel_size=l2, padding="same"
                 )
             )
+        self.conv_hidden = nn.ModuleList(self.conv_hidden)
 
         self.conv2 = nn.Conv2d(
             in_channels=l1, out_channels=n_channels_out, kernel_size=l2, padding="same"
