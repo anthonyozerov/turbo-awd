@@ -18,6 +18,7 @@ from awave2.ddw.loss import DDWLossConfig
 
 from cnn import CNN
 from net import Net
+from unet import UNet
 
 config_path = sys.argv[1]
 name = config_path.split('/')[-1].split('.')[0]
@@ -96,8 +97,11 @@ batch = next(iter(trainloader))
 
 valloader = DataLoader(valset, **config["dataloader_val"])
 
-cnn_module = Net(n_channels=n_channels, n_channels_out=1, **config['cnn'])
-cnn = CNN(cnn=cnn_module, optimizer_config=config["optimizer"], verbose=True)
+if 'cnn' in config:
+    network_module = Net(n_channels=n_channels, n_channels_out=1, **config['cnn'])
+elif 'unet' in config:
+    network_module = UNet(n_channels_in=n_channels, n_channels_out=1, **config['unet'])
+cnn = CNN(cnn=network_module, optimizer_config=config["optimizer"], verbose=True)
 
 config["checkpoint"]["filename"] = name + '-{epoch:02d}'
 checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
