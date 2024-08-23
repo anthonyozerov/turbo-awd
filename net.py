@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from gabor import GaborConv2d, GaborLayerLearnable
+from gabor import GaborLayerLearnable
 
 
 class Net(nn.Module):
