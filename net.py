@@ -1,14 +1,22 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from gabor import GaborConv2d, GaborLayerLearnable
 
 
 class Net(nn.Module):
-    def __init__(self, n_channels=2, n_channels_out=1, l1=64, l2=5, n_hidden_layers=7):
+    def __init__(self, n_channels=2, n_channels_out=1, l1=64, l2=5, n_hidden_layers=7,
+                 first_gabor=False):
         super(Net, self).__init__()
 
-        self.conv1 = nn.Conv2d(
-            in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same"
-        )  # Input layer
+        if first_gabor:
+            self.conv1 = GaborLayerLearnable(kernels=l1, stride=1,
+                in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same"
+            )
+
+        else:
+            self.conv1 = nn.Conv2d(
+                in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same"
+            )  # Input layer
 
         self.conv_hidden = []
         for i in range(n_hidden_layers):
