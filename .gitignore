@@ -1,3 +1,10 @@
+*.mat
+*.ckpt
+*.png
+wandb/
+lightning_logs/
+*.pt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
