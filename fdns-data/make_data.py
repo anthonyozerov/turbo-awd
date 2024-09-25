@@ -5,6 +5,11 @@ import numpy as np
 import h5py
 from scipy.io import loadmat
 from tqdm import tqdm
+import sys
+
+# get args from command line
+path = sys.argv[1]
+which = sys.argv[2]
 
 # %%
 nx = 128
@@ -19,11 +24,11 @@ dealias = False
 Kx, Ky, Ksq, _, invKsq = initialize_wavenumbers_rfft2(nx, nx, Lx, Lx, INDEXING='ij')
 
 # %%
-normalization = loadmat('Normalization_coefficients_train.mat')
-with h5py.File('FDNS Psi W_train.mat', 'r') as f:
+normalization = loadmat(f'{path}/Normalization_coefficients_{which}.mat')
+with h5py.File(f'{path}/FDNS Psi W_{which}.mat', 'r') as f:
     psi_data = np.array(f['Psi'], np.float32) * normalization['SDEV_IP'][0][0] + normalization['MEAN_IP'][0][0]
     omega_data = np.array(f['W'], np.float32) * normalization['SDEV_IW'][0][0] + normalization['MEAN_IW'][0][0]
-with h5py.File('FDNS U V_train.mat', 'r') as f:
+with h5py.File(f'{path}/FDNS U V_{which}.mat', 'r') as f:
     u_data = np.array(f['U'], np.float32) * normalization['SDEV_IU'][0][0] + normalization['MEAN_IU'][0][0]
     v_data = np.array(f['V'], np.float32) * normalization['SDEV_IV'][0][0] + normalization['MEAN_IV'][0][0]
 
@@ -43,7 +48,7 @@ for i in tqdm(range(N)):
     GM4_data[:,:,i] = PiOmegaGM4(omega_data[:,:,i], u_data[:,:,i], v_data[:,:,i], Kx, Ky, Delta, filterType=filterType, spectral=False, dealias=dealias)
 
 # %%
-with h5py.File('FDNS_big_train.mat', 'w') as f:
+with h5py.File(f'{path}/FDNS_big_{which}.mat', 'w') as f:
     f['psi'] = psi_data
     f['omega'] = omega_data
     f['u'] = u_data
