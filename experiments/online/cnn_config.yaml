@@ -1,0 +1,7 @@
+norm_path: '../turbo-awd/fdns-data/Normalization_coefficients_train.mat'
+
+# model_path: '../turbo-awd/experiments/cnn/checkpoints/orig-resid-gm4-epoch=997.ckpt'
+# resid: True
+
+model_path: '../turbo-awd/experiments/cnn/checkpoints/orig-resid-gm4-small1-epoch=3997.ckpt'
+resid: True

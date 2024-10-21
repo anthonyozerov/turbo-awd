@@ -3,7 +3,7 @@ from py2d.gradient_model import TauGM4, PiOmegaGM2, PiOmegaGM4
 from py2d.initialize import initialize_wavenumbers_rfft2
 import numpy as np
 import h5py
-from scipy.io import loadmat
+from scipy.io import loadmat, savemat
 from tqdm import tqdm
 import sys
 
@@ -58,3 +58,7 @@ with h5py.File(f'{path}/FDNS_big_{which}.mat', 'w') as f:
     f['tau22GM4'] = Tau22GM4_data
     f['gm2'] = GM2_data
     f['gm4'] = GM4_data
+
+for i in range(10):
+    index = np.random.randint(0, N)
+    savemat(f'{path}/fdns_ic_{i}_{which}.mat', {'Omega': omega_data[:,:,index].astype(np.float64)})
