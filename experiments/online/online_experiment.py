@@ -1,4 +1,9 @@
 from py2d.Py2D_solver import Py2D_solver
+import sys
+sys.path.insert(0, 'turboawd')
+print(sys.path)
+import os
+print(os.path.abspath(sys.path[0]))
 
 Py2D_solver(Re=20e3, # Reynolds number
                fkx=25, # Forcing wavenumber in x

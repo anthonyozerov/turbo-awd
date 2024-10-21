@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # take config filename from first argument
+# USAGE: sbatch job.sh config_filename
 
 #SBATCH --job-name=cnn
 #SBATCH --partition=jsteinhardt

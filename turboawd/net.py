@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from gabor import GaborLayerLearnable
 
 
 class Net(nn.Module):
@@ -9,6 +8,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
 
         if first_gabor:
+            from turboawd.gabor import GaborLayerLearnable
             self.conv1 = GaborLayerLearnable(kernels=l1, stride=1,
                 in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same"
             )
