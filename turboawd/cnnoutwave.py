@@ -34,7 +34,8 @@ class CNNOutWave(L.LightningModule):
 
         self.log_dict({"mse_regular": mse_regular,
                        "mse_wavelet": mse_wavelet,
-                       "mse_total": mse_total})
+                       "mse_total": mse_total,
+                       "loss": mse_wavelet})
 
         return mse_wavelet
 
