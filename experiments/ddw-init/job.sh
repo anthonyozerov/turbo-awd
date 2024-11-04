@@ -11,4 +11,4 @@ configs=(configs/runs/*)
 config=${configs[$SLURM_ARRAY_TASK_ID-1]}
 
 # run the experiment
-python ../../run_ddw.py $config
+python run_ddw.py $config
