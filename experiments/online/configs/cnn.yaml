@@ -23,12 +23,12 @@ NX: 128
 # dealias?
 dealias: False
 # Total time to run
-tTotal: 10
+tTotal: 100
 ################################ OUTPUT PARAMETERS
 # Save data?
 saveData: True
 # Time interval at which to save
-tSAVE: 1.0e-2
+tSAVE: 1.0e-1
 # ?
 readTrue: False
 # resume?
