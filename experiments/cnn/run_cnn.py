@@ -16,12 +16,13 @@ from awave2.dwt.dwt1d import DWT1d, DWT1dConfig
 from awave2.dwt.loss import DWTLossConfig
 from awave2.ddw.loss import DDWLossConfig
 
-from cnn import CNN
-from net import Net
-from unet import UNet
+from turboawd.cnn import CNN
+from turboawd.net import Net
+from turboawd.unet import UNet
 
 config_path = sys.argv[1]
-name = config_path.split('/')[-1].split('.')[0]
+name = '-'.join(config_path.split('/')[1:]).split('.')[0]
+print(name)
 
 assert os.path.exists(config_path), f"Invalid config path: {config_path}"
 config = yaml.safe_load(open(config_path, "r"))
@@ -65,7 +66,12 @@ with h5py.File(train_output_path, "r") as f:
 
 if 'residual' in config:
     from scipy.io import loadmat
-    normalization = loadmat(f"{config['data']['train_dir']}/Normalization_coefficients_train.mat")
+    if 'norm_file' in config['data']:
+        norm_path = config['data']['train_dir'] + '/' + config['data']['norm_file']
+    else:
+        norm_path = config['data']['train_dir'] + '/Normalization_coefficients_train.mat'
+    normalization = loadmat(norm_path)
+
     data = data * normalization['SDEV_IPI'][0][0] + normalization['MEAN_IPI'][0][0]
     with h5py.File(train_input_path, "r") as f:
         data -= np.array(f[config['residual']], np.float32)
