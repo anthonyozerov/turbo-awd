@@ -1,0 +1,13 @@
+norm_path: '../../fdns-data/Re20K_kf4_NLES128/Normalization_coefficients_val.mat'
+
+# model_path: '../turbo-awd/experiments/cnn/checkpoints/orig-resid-gm4-epoch=997.ckpt'
+# resid: True
+
+# path to the model checkpoint
+model_path: '../cnn/checkpoints/kf4Re20k-orig-epoch=3007.ckpt.bak'
+
+# whether the CNN is a residual CNN
+resid: False
+
+# whether to reset input normalization at each timestep
+input_stepnorm: False

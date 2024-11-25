@@ -5,7 +5,7 @@
 
 #SBATCH --job-name=online-cnn
 #SBATCH --partition=jsteinhardt
-#SBATCH --gres=gpu:A5000:1
+#SBATCH --gres=gpu:A4000:1
 #SBATCH --cpus-per-task=8
 
 python run_online.py $1 $2
