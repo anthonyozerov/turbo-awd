@@ -8,4 +8,4 @@
 #SBATCH --gres=gpu:A5000:1
 #SBATCH --cpus-per-task=4
 
-python run_cnn.py configs/$1.yaml
+python run_cnn.py $1
