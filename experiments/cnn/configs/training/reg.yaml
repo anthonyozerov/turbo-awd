@@ -1,0 +1,20 @@
+dataloader_train:
+  batch_size: 128
+  shuffle: true
+  num_workers: 2
+dataloader_val:
+  batch_size: 128
+  shuffle: false
+  num_workers: 2
+checkpoint:
+  save_top_k: 3
+  monitor: 'loss'
+  mode: 'min'
+  dirpath: 'checkpoints'
+trainer:
+  max_epochs: 4000
+optimizer:
+  lr: 0.00002
+wandb:
+  project: 'awd-dev'
+  group: 'cnn'
