@@ -1,0 +1,13 @@
+norm_path: '../../fdns-data/Re20K_kf25_NLES128/Normalization_coefficients_train.mat'
+
+library: 'onnx'
+
+# path to the model checkpoint
+model_path: '../../trained-cnn/my_model_CNN.onnx'
+
+# whether the CNN is a residual CNN
+resid: False
+
+# whether to reset input normalization at each timestep
+input_stepnorm: True
+
