@@ -7,7 +7,7 @@ dataloader_val:
   shuffle: false
   num_workers: 2
 checkpoint:
-  save_top_k: 3
+  save_top_k: 1
   monitor: 'loss'
   mode: 'min'
   dirpath: 'checkpoints'

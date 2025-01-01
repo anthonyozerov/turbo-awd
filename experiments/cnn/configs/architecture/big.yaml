@@ -1,4 +1,4 @@
-cnn:
+cnn-architecture:
   l1: 64
   l2: 5
   n_hidden_layers: 7
