@@ -168,12 +168,12 @@ savepath = f"{config['checkpoint']['dirpath']}/{name}.onnx"
 cnn.to_onnx(savepath, input_sample, export_params=True)
 # test running ONNX
 print("Testing loading ONNX...")
-ort_session = rt.InferenceSession(savepath)
-ort_inputs = {ort_session.get_inputs()[0].name: input_sample.detach().numpy()}
-ort_outs = ort_session.run(None, ort_inputs)
-assert ort_outs[0].shape == train_output_mat[0].shape
+sess = rt.InferenceSession(savepath)
+rt_inputs = {sess.get_inputs()[0].name: input_sample.detach().numpy()}
+rt_outs = sess.run(None, rt_inputs)
+assert rt_outs[0].shape == batch[1].shape
 # end sesssion
-del ort_session
+del sess
 
 ########################## TRAIN CNN ##############################
 print('Setting up training')
