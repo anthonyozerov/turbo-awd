@@ -1,1 +1,2 @@
 input_channels: ['psi', 'omega']
+input_channel_norm_keys: ['IPSI', 'IW']

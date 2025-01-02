@@ -2,6 +2,7 @@ import os
 import yaml
 import h5py
 import numpy as np
+from tqdm import tqdm
 from scipy.io import loadmat
 
 
@@ -32,12 +33,13 @@ def load_cnn_config(config_path):
     training = config_meta["training"]
 
     # load the other config files
+    root_path = "/".join(config_path.split("/")[:-1])
     config_architecture = yaml.safe_load(
-        open(f"configs/architecture/{architecture}.yaml", "r")
+        open(f"{root_path}/architecture/{architecture}.yaml", "r")
     )
-    config_channels = yaml.safe_load(open(f"configs/channels/{channels}.yaml", "r"))
-    config_data = yaml.safe_load(open(f"configs/data/{data}.yaml", "r"))
-    config_training = yaml.safe_load(open(f"configs/training/{training}.yaml", "r"))
+    config_channels = yaml.safe_load(open(f"{root_path}/channels/{channels}.yaml", "r"))
+    config_data = yaml.safe_load(open(f"{root_path}/data/{data}.yaml", "r"))
+    config_training = yaml.safe_load(open(f"{root_path}/training/{training}.yaml", "r"))
 
     # combine them all into one config
     config = {
@@ -64,9 +66,9 @@ def normalize(data, norm_path, norm_keys, sd_only=False):
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
 
         if sd_only:
-            data[:,i,:,:] = data[:,i,:,:] / sdev
+            data[:, i, :, :] = data[:, i, :, :] / sdev
         else:
-            data[:,i,:,:] = (data[:,i,:,:] - mean) / sdev
+            data[:, i, :, :] = (data[:, i, :, :] - mean) / sdev
 
     return data
 
@@ -82,7 +84,7 @@ def denormalize(data, norm_path, norm_keys):
         mean = normalization["MEAN_" + norm_keys[i]][0][0]
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
 
-        data[:,i,:,:] = data[:,i,:,:] * sdev + mean
+        data[:, i, :, :] = data[:, i, :, :] * sdev + mean
 
     return data
 
@@ -179,3 +181,87 @@ def load_data(
         data = torch.from_numpy(data)
 
     return data
+
+
+def apply_cnn(
+    onnx_path,
+    config,
+    input_data_path,
+    input_centerscale=False,
+    input_norm_path=None,
+    output_denorm_path=None,
+    output_norm_key=None,
+    batch_size=1,
+    reorder=None,
+):
+    """
+    Apply a CNN model to input data, using ONNX runtime.
+
+    Parameters
+    ----------
+    onnx_path : str
+        Path to the ONNX model.
+    config : dict
+        Configuration of the CNN.
+    input_data_path : str
+        Path to the input data.
+    input_centerscale : bool, optional
+        Whether to center and scale the input data, by default False.
+    input_norm_path : str, optional
+        Path to the normalization file for the input data, by default None.
+        If not None, each channel in the input data will be normalized using
+        the mean and std given in the normalization file.
+    output_denorm_path : str, optional
+        Path to the normalization file for the output data, by default None.
+        If not None, the output data will be denormalized using the mean and std
+        given in the normalization file.
+    output_norm_key : str, optional
+        Key to denormalize the output data, by default None.
+    batch_size : int, optional
+        Batch size to use when running the model, by default 1.
+
+    Returns
+    -------
+    np.ndarray
+        Output data from the CNN model.
+    """
+
+    import onnxruntime as rt
+
+    # load the ONNX model
+    sess = rt.InferenceSession(onnx_path)
+
+    # load the input data
+    norm_keys = None if input_norm_path is None else config["input_norm_keys"]
+    input_data = load_data(
+        input_data_path,
+        config["input_channels"],
+        centerscale=input_centerscale,
+        norm_path=input_norm_path,
+        norm_keys=norm_keys,
+        tensor=False,
+    )
+
+    rt_inputs = {sess.get_inputs()[0].name: input_data}
+    # print shape of model inputs
+    print(sess.get_inputs()[0].shape)
+
+    # run the model in batches, assuming batch size does not divide the number of samples
+    output_data = []
+    for i in tqdm(range(0, input_data.shape[0], batch_size)):
+        start = i
+        end = min(i + batch_size, input_data.shape[0])
+        forinput = input_data[start:end]
+        if reorder is not None:
+            assert len(reorder) == 4
+            # reorder the axes of the input data
+            forinput = np.moveaxis(forinput, [0, 1, 2, 3], reorder)
+        rt_outs = sess.run(None, {sess.get_inputs()[0].name: forinput})
+        output_data.append(rt_outs[0])
+
+    output_data = np.concatenate(output_data, axis=0)
+
+    if output_denorm_path is not None:
+        output_data = denormalize(output_data, output_denorm_path, [output_norm_key])
+
+    return output_data

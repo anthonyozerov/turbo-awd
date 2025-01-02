@@ -98,13 +98,20 @@ cnn = CNN(cnn=network_module, optimizer_config=config["optimizer"], verbose=True
 print("Testing saving ONNX...")
 input_sample = torch.randn(batch[0].shape)
 savepath = f"{config['checkpoint']['dirpath']}/{name}.onnx"
-cnn.to_onnx(savepath, input_sample, export_params=True)
+cnn.to_onnx(savepath, input_sample, export_params=True,
+            input_names=["input"], output_names=["output"],
+            dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}})
 # test running ONNX
 print("Testing loading ONNX...")
 sess = rt.InferenceSession(savepath)
 rt_inputs = {sess.get_inputs()[0].name: input_sample.detach().numpy()}
 rt_outs = sess.run(None, rt_inputs)
 assert rt_outs[0].shape == batch[1].shape
+# test with smaller batch
+smallbatch_size=batch[0].shape[0]//2
+rt_inputs = {sess.get_inputs()[0].name: input_sample.detach().numpy()[:smallbatch_size]}
+rt_outs = sess.run(None, rt_inputs)
+assert rt_outs[0].shape == (smallbatch_size, 1, 128, 128)
 # end sesssion
 del sess
 

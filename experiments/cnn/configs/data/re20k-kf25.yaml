@@ -4,3 +4,5 @@ data:
   train_input_file: 'FDNS_big_train.mat'
   train_output_file: 'FDNS PI_train.mat'
   norm_file: 'Normalization_coefficients_train.mat'
+  output_key: 'PI'
+  output_norm_key: 'IPI'
