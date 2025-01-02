@@ -1,4 +1,4 @@
 data: re20k-kf25
 architecture: big
-channels: psiomega
+channels: psiomega-rgm4
 training: reg

@@ -3,3 +3,4 @@ data:
   train_N: 1500
   train_input_file: 'FDNS_big_train.mat'
   train_output_file: 'FDNS PI_train.mat'
+  norm_file: 'Normalization_coefficients_train.mat'
