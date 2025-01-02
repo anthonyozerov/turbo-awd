@@ -228,6 +228,11 @@ def apply_cnn(
 
     import onnxruntime as rt
 
+    if reorder is not None:
+        assert len(reorder) == 4
+
+    assert os.path.exists(onnx_path), f"Invalid ONNX path: {onnx_path}"
+
     # load the ONNX model
     sess = rt.InferenceSession(onnx_path)
 
@@ -253,13 +258,14 @@ def apply_cnn(
         end = min(i + batch_size, input_data.shape[0])
         forinput = input_data[start:end]
         if reorder is not None:
-            assert len(reorder) == 4
             # reorder the axes of the input data
             forinput = np.moveaxis(forinput, [0, 1, 2, 3], reorder)
         rt_outs = sess.run(None, {sess.get_inputs()[0].name: forinput})
         output_data.append(rt_outs[0])
 
     output_data = np.concatenate(output_data, axis=0)
+    if reorder is not None:
+        output_data = np.moveaxis(output_data, reorder, [0, 1, 2, 3])
 
     if output_denorm_path is not None:
         output_data = denormalize(output_data, output_denorm_path, [output_norm_key])
