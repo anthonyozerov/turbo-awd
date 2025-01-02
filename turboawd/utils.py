@@ -54,24 +54,36 @@ def load_cnn_config(config_path):
 
 def normalize(data, norm_path, norm_keys, sd_only=False):
     assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
+    nchannels = data.shape[1]
+    assert nchannels == len(norm_keys)
+
     normalization = loadmat(norm_path)
-    for i in range(len(data)):
+
+    for i in range(nchannels):
         mean = normalization["MEAN_" + norm_keys[i]][0][0]
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
+
         if sd_only:
-            data[i] = data[i] / sdev
+            data[:,i,:,:] = data[:,i,:,:] / sdev
         else:
-            data[i] = (data[i] - mean) / sdev
+            data[:,i,:,:] = (data[:,i,:,:] - mean) / sdev
+
     return data
 
 
 def denormalize(data, norm_path, norm_keys):
     assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
+    nchannels = data.shape[1]
+    assert nchannels == len(norm_keys)
+
     normalization = loadmat(norm_path)
-    for i in range(len(data)):
+
+    for i in range(nchannels):
         mean = normalization["MEAN_" + norm_keys[i]][0][0]
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
-        data[i] = data[i] * sdev + mean
+
+        data[:,i,:,:] = data[:,i,:,:] * sdev + mean
+
     return data
 
 

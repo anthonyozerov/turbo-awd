@@ -58,10 +58,11 @@ train_output_path = config["data"]["train_dir"] + "/" + config["data"]["train_ou
 if "residual" in config:
     norm_path = config["data"]["train_dir"] + "/" + config["data"]["norm_file"]
     output = load_data(train_output_path, ["PI"], norm_path=norm_path,
-                       norm_keys=["IPI"], denorm=True, centerscale=False)
+                       norm_keys=["IPI"], denorm=True)
     residual = load_data(train_input_path, [config["residual"]])
     output -= residual
     output = normalize(output, norm_path, ["IPI"], sd_only=True)
+
 else:
     output = load_data(train_output_path, ["PI"])
 
