@@ -1,0 +1,2 @@
+input_channels: ['psi', 'omega']
+residual: 'gm4'

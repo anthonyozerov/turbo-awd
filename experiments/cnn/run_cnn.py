@@ -19,33 +19,16 @@ from awave2.ddw.loss import DDWLossConfig
 
 from turboawd.cnn import CNN
 from turboawd.net import Net
+from turboawd.utils import load_cnn_config, load_data, normalize
 
 ########################## LOAD CONFIGS ##############################
 print('Loading configs')
 # load configuration
 # the main config file specifies the names of the other config files
 config_path = sys.argv[1]
-assert os.path.exists(config_path), f"Invalid config path: {config_path}"
-config_meta = yaml.safe_load(open(config_path, "r"))
 
-# get the names of the other config files
-architecture = config_meta["architecture"]
-channels = config_meta["channels"]
-data = config_meta["data"]
-training = config_meta["training"]
+config, name = load_cnn_config(config_path)
 
-# load the other config files
-config_architecture = yaml.safe_load(
-    open(f"configs/architecture/{architecture}.yaml", "r")
-)
-config_channels = yaml.safe_load(open(f"configs/channels/{channels}.yaml", "r"))
-config_data = yaml.safe_load(open(f"configs/data/{data}.yaml", "r"))
-config_training = yaml.safe_load(open(f"configs/training/{training}.yaml", "r"))
-
-# combine them all into one config
-config = {**config_architecture, **config_channels, **config_data, **config_training}
-
-name = config_path.split("/")[-1].split(".")[0]
 print(name)
 
 # if slurm, save job id to config
@@ -65,84 +48,33 @@ train_input_path = f"{train_dir}/{train_input_file}"
 # keys says which channels will be used
 keys = config["input_channels"]
 n_channels = len(keys)
-
-# load input data
-with h5py.File(train_input_path, "r") as f:
-    data = [
-        np.array(f[key], np.float32) for key in keys
-    ]
-
-# normalize the input data by the mean and standard deviation
-# of each channel
-data = [(d - np.mean(d)) / np.std(d) for d in data]
-
-# calculate shape of input data
-Nlon = data[0].shape[0]
-Nlat = data[0].shape[1]
-N = data[0].shape[2]
-
-data = np.array(data)
-# data is [channels, Nlon, Nlat, N]
-data = np.moveaxis(data, -1, 0)
-# data is [N, channels, Nlon, Nlat]
-assert data.shape == (N, n_channels, Nlon, Nlat)
-
 train_N = config["data"]["train_N"]
 
-train_input_mat = data[:train_N, :, :, :]
-val_input_mat = data[train_N:, :, :, :]
+input_train = load_data(train_input_path, keys, centerscale=True, before=train_N, tensor=True)
+input_val = load_data(train_input_path, keys, centerscale=True, after=train_N, tensor=True)
+assert input_train.shape == (train_N, n_channels, 128, 128)
 
-assert train_input_mat.shape == (train_N, n_channels, Nlon, Nlat)
-assert val_input_mat.shape == (N - train_N, n_channels, Nlon, Nlat)
-
-# load output data
-train_output_file = config["data"]["train_output_file"]
-train_output_path = f"{train_dir}/{train_output_file}"
-with h5py.File(train_output_path, "r") as f:
-    data = np.array(f["PI"], np.float32)
-
-# make output data be residual if needed
+train_output_path = config["data"]["train_dir"] + "/" + config["data"]["train_output_file"]
 if "residual" in config:
-    from scipy.io import loadmat
+    norm_path = config["data"]["train_dir"] + "/" + config["data"]["norm_file"]
+    output = load_data(train_output_path, ["PI"], norm_path=norm_path,
+                       norm_keys=["IPI"], denorm=True, centerscale=False)
+    residual = load_data(train_input_path, [config["residual"]])
+    output -= residual
+    output = normalize(output, norm_path, ["IPI"], sd_only=True)
+else:
+    output = load_data(train_output_path, ["PI"])
 
-    if "norm_file" in config["data"]:
-        norm_path = config["data"]["train_dir"] + "/" + config["data"]["norm_file"]
-    else:
-        norm_path = (
-            config["data"]["train_dir"] + "/Normalization_coefficients_train.mat"
-        )
-    normalization = loadmat(norm_path)
+output_train = output[:train_N]
+output_val = output[train_N:]
 
-    # unnormalize the PI data
-    data = data * normalization["SDEV_IPI"][0][0] + normalization["MEAN_IPI"][0][0]
+assert output_train.shape == (train_N, 1, 128, 128)
 
-    # take the residual of the PI data with another channel (e.g. output of GM4)
-    with h5py.File(train_input_path, "r") as f:
-        data -= np.array(f[config["residual"]], np.float32)
-    # renormalize the residual
-    data = data / normalization["SDEV_IPI"][0][0]
+output_train = torch.from_numpy(output_train).float()
+output_val = torch.from_numpy(output_val).float()
 
-# output data is [Nlon, Nlat, N]
-data = np.moveaxis(data, -1, 0)
-data = np.expand_dims(data, axis=1)
-assert data.shape == (N, 1, Nlon, Nlat)
-
-train_output_mat = data[:train_N, :, :, :]
-val_output_mat = data[train_N:, :, :, :]
-
-assert train_output_mat.shape == (train_N, 1, Nlon, Nlat)
-assert val_output_mat.shape == (N - train_N, 1, Nlon, Nlat)
-
-# make inputs and outputs TensorDataset
-
-train_input_mat = torch.from_numpy(train_input_mat).float()
-train_output_mat = torch.from_numpy(train_output_mat).float()
-
-val_input_mat = torch.from_numpy(val_input_mat).float()
-val_output_mat = torch.from_numpy(val_output_mat).float()
-
-trainset = TensorDataset(train_input_mat, train_output_mat)
-valset = TensorDataset(val_input_mat, val_output_mat)
+trainset = TensorDataset(input_train, output_train)
+valset = TensorDataset(input_val, output_val)
 
 # define dataloaders
 trainloader = DataLoader(trainset, **config["dataloader_train"])
