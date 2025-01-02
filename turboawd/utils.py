@@ -73,7 +73,7 @@ def normalize(data, norm_path, norm_keys, sd_only=False):
     return data
 
 
-def denormalize(data, norm_path, norm_keys):
+def denormalize(data, norm_path, norm_keys, sd_only=False):
     assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
     nchannels = data.shape[1]
     assert nchannels == len(norm_keys)
@@ -83,8 +83,10 @@ def denormalize(data, norm_path, norm_keys):
     for i in range(nchannels):
         mean = normalization["MEAN_" + norm_keys[i]][0][0]
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
-
-        data[:, i, :, :] = data[:, i, :, :] * sdev + mean
+        if sd_only:
+            data[:, i, :, :] = data[:, i, :, :] * sdev
+        else:
+            data[:, i, :, :] = data[:, i, :, :] * sdev + mean
 
     return data
 
@@ -189,8 +191,10 @@ def apply_cnn(
     input_data_path,
     input_centerscale=False,
     input_norm_path=None,
-    output_denorm_path=None,
-    output_norm_key=None,
+    train_norm_path=None,
+    train_norm_key=None,
+    finaloutput_denorm_path=None,
+    finaloutput_denorm_key=None,
     batch_size=1,
     reorder=None,
 ):
@@ -227,11 +231,17 @@ def apply_cnn(
     """
 
     import onnxruntime as rt
+    import onnx
+
 
     if reorder is not None:
         assert len(reorder) == 4
 
     assert os.path.exists(onnx_path), f"Invalid ONNX path: {onnx_path}"
+
+    if 'residual' in config:
+        assert train_norm_path is not None
+        assert train_norm_key is not None
 
     # load the ONNX model
     sess = rt.InferenceSession(onnx_path)
@@ -267,7 +277,47 @@ def apply_cnn(
     if reorder is not None:
         output_data = np.moveaxis(output_data, reorder, [0, 1, 2, 3])
 
-    if output_denorm_path is not None:
-        output_data = denormalize(output_data, output_denorm_path, [output_norm_key])
+    if "residual" in config:
+        output_data = denormalize(
+            output_data, train_norm_path, [train_norm_key], sd_only=True
+        )
+        residual = load_data(input_data_path, [config["residual"]])
+        output_data += residual
+        output_data = normalize(
+            output_data, train_norm_path, [train_norm_key], sd_only=False
+        )
+
+    if finaloutput_denorm_path is not None:
+        output_data = denormalize(
+            output_data, finaloutput_denorm_path, [finaloutput_denorm_key]
+        )
 
     return output_data
+
+
+# force an ONNX model to accept arbitrary batch size
+
+def change_onnx_dims(model_path):
+    import onnx
+    # Use some symbolic name not used for any other dimension
+    sym_batch_dim = "batch"
+
+    # The following code changes the first dimension of every input to be batch-dim
+    # Note that this requires all inputs to have the same batch_dim
+    model = onnx.load(model_path)
+    inputs = model.graph.input
+
+    for input in inputs:
+
+        # Checks omitted. This assumes that all inputs are tensors and have a shape with first dim.
+        dim1 = input.type.tensor_type.shape.dim[0]
+        # update dim to be a symbolic value
+        dim1.dim_param = sym_batch_dim
+
+    # make the outputs also have the same batch dim
+    outputs = model.graph.output
+    for output in outputs:
+        dim1 = output.type.tensor_type.shape.dim[0]
+        dim1.dim_param = sym_batch_dim
+
+    onnx.save(model, model_path)
