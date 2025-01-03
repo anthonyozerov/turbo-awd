@@ -46,11 +46,9 @@ class DDW(L.LightningModule):
         loss = self.loss(z, z_coeffs, z_recon, wts=self.dwts)
 
         # prepend 'val_' to the keys in the dict
-        for k, v in loss.items():
-            loss['val_'+k] = v
-            del loss[k]
+        val_loss_dict = {f'val_{k}': v for k, v in loss.items()}
 
-        self.log_dict(loss, on_epoch=True)
+        self.log_dict(val_loss_dict, on_epoch=True)
 
 
     def configure_optimizers(self):
