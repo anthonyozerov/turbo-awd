@@ -1,6 +1,6 @@
 which: 'pi'
 data:
-  train_dir: '../../fdns-data'
+  train_dir: '../../fdns-data/Re20K_kf25_NLES128'
   train_N: 1500
   train_file: 'FDNS PI_train.mat'
   key: 'PI'
@@ -8,7 +8,11 @@ dwt:
   padding_mode: 'zero'
   learn_dual: true  # true for biorthogonal wavelets
   init_wavelet: 'bior3.1'
-dataloader:
+dataloader_train:
+  batch_size: 8
+  shuffle: true
+  num_workers: 2
+dataloader_val:
   batch_size: 8
   shuffle: true
   num_workers: 2

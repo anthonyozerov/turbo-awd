@@ -112,7 +112,7 @@ smallbatch_size=batch[0].shape[0]//2
 rt_inputs = {sess.get_inputs()[0].name: input_sample.detach().numpy()[:smallbatch_size]}
 rt_outs = sess.run(None, rt_inputs)
 assert rt_outs[0].shape == (smallbatch_size, 1, 128, 128)
-# end sesssion
+# end session
 del sess
 
 ########################## TRAIN CNN ##############################

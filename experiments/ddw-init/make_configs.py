@@ -4,7 +4,7 @@ import pywt
 
 config = yaml.safe_load(open("configs/base.yaml", "r"))
 
-data_dir = "fdns-data"
+data_dir = "fdns-data/Re20K_kf25_NLES128"
 wavelets = pywt.wavelist("db")[:6] + pywt.wavelist("bior")
 
 os.makedirs("configs/runs/", exist_ok=True)

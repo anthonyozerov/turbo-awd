@@ -15,19 +15,43 @@ class DDW(L.LightningModule):
         self.n_dwts = len(dwts)
         self.optimizer_config = optimizer_config
 
-    def training_step(self, batch, batch_idx):
-        z = batch[0]
+    def get_coefs_and_recon(self, z):
         z_coeffs = [
             self.dwts[i](z[:, i, :, :].unsqueeze(1)) for i in range(self.n_dwts)
         ]
         z_recons = [self.dwts[i].inverse(z_coeffs[i]) for i in range(self.n_dwts)]
         z_recon = torch.cat(z_recons, dim=1)
+        return z_coeffs, z_recon
+
+    def forward(self, z):
+        z_coeffs, z_recon = self.get_coefs_and_recon(z)
+        return z_coeffs
+
+    def training_step(self, batch, batch_idx):
+        z = batch[0]
+
+        z_coeffs, z_recon = self.get_coefs_and_recon(z)
 
         loss = self.loss(z, z_coeffs, z_recon, wts=self.dwts)
 
         self.log_dict(loss, on_epoch=True)
 
         return loss["loss"]
+
+    def validation_step(self, batch, batch_idx):
+        z = batch[0]
+
+        z_coeffs, z_recon = self.get_coefs_and_recon(z)
+
+        loss = self.loss(z, z_coeffs, z_recon, wts=self.dwts)
+
+        # prepend 'val_' to the keys in the dict
+        for k, v in loss.items():
+            loss['val_'+k] = v
+            del loss[k]
+
+        self.log_dict(loss, on_epoch=True)
+
 
     def configure_optimizers(self):
         params = sum([list(wt.parameters()) for wt in self.dwts], [])
