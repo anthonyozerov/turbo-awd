@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 # run_ddw.py for one config
 
 #SBATCH --job-name=ddw-init-experiments
