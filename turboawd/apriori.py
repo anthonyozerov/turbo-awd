@@ -7,6 +7,7 @@ from py2d.spectra import (
     energyTransfer_spectra,
     enstrophyTransfer_spectra,
 )
+import onnxruntime as rt
 
 
 def get_energytransfer(psi, pi, dealias):
@@ -53,7 +54,7 @@ def get_energytransfer_spectrum(psi, pi):
 
 
 def apriori(
-    pi_model, input_data_path, output_data_path, output_denorm_path, output_norm_key
+    pi_model, input_data_path, output_data_path, output_denorm_path, output_norm_key, wavelet_path=None
 ):
     """
     Calculate a priori performance metrics for the model output.
@@ -121,6 +122,13 @@ def apriori(
     ]
     energytransfer_spectrum = np.mean(np.array(energy_transfer_spectra), axis=0)
 
+    # look at the output in wavelet space
+    if wavelet_path is not None:
+        sess = rt.InferenceSession(wavelet_path)
+        rt_inputs = {sess.get_inputs()[0].name: pi_model}
+        pi_model_wavelet = sess.run(None, rt_inputs)
+    else:
+        pi_model_wavelet = None
 
     return dict(
         mse=mse,
@@ -131,4 +139,5 @@ def apriori(
         enstrophytransfer_mae=enstrophytransfer_mae,
         enstrophytransfer_spectrum=enstrophytransfer_spectrum,
         energytransfer_spectrum=energytransfer_spectrum,
+        pi_model_wavelet=pi_model_wavelet,
     )
