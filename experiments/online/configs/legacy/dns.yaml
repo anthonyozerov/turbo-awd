@@ -1,0 +1,35 @@
+################################ PHYSICAL PARAMETERS
+# Reynolds number
+Re: 20.0e+3
+# Forcing wavenumber in x and y
+fkx: 25
+fky: 25
+# Rayleigh drag coefficient
+alpha: 0.1
+#Coriolis parameter
+beta: 0
+# Initial condition
+ICnum: 1
+################################ SGS PARAMETERS
+# The SGS model to use
+SGSModel_string: 'NoSGS'
+# Coefficient for eddy viscosity
+eddyViscosityCoeff: 0
+################################ NUMERICAL PARAMETERS
+# Time step
+dt: 0.5e-4
+# Number of grid points in x and y
+NX: 2048
+# dealias?
+dealias: True
+# Total time to run
+tTotal: 0.1
+################################ OUTPUT PARAMETERS
+# Save data?
+saveData: True
+# Time interval at which to save
+tSAVE: 1.0e-3
+# ?
+readTrue: False
+# resume?
+resumeSim: False
