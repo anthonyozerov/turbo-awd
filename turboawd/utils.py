@@ -43,6 +43,7 @@ def load_cnn_config(config_path):
 
     # combine them all into one config
     config = {
+        **config_meta,
         **config_architecture,
         **config_channels,
         **config_data,
@@ -234,6 +235,8 @@ def apply_cnn(
     import onnx
 
 
+    if "nchw_map" in config:
+        reorder = config["nchw_map"]
     if reorder is not None:
         assert len(reorder) == 4
 
@@ -321,3 +324,59 @@ def change_onnx_dims(model_path):
         dim1.dim_param = sym_batch_dim
 
     onnx.save(model, model_path)
+
+
+def load_online_config(config_path,
+                       cnn_config_base="../cnn/configs/",
+                       cnn_path_base="../cnn/trained-cnns/",
+                       norm_path=None):
+
+    assert os.path.exists(config_path), f"Invalid config path: {config_path}"
+    config_meta = yaml.safe_load(open(config_path, "r"))
+
+
+    physics = config_meta["physics"]
+    resolution = config_meta["resolution"]
+    sgsmodel = config_meta["sgsmodel"]
+    boilerplate = config_meta["boilerplate"]
+
+    config_physics = yaml.safe_load(open(f"../online/configs/physics/{physics}.yaml", "r"))
+    config_resolution = yaml.safe_load(open(f"../online/configs/resolution/{resolution}.yaml", "r"))
+    config_sgsmodel = yaml.safe_load(open(f"../online/configs/sgsmodel/{sgsmodel}.yaml", "r"))
+    config_boilerplate = yaml.safe_load(open(f"../online/configs/boilerplate/{boilerplate}.yaml", "r"))
+
+    config = {
+        **config_meta,
+        **config_physics,
+        **config_resolution,
+        **config_sgsmodel,
+        **config_boilerplate,
+    }
+
+    if config["SGSModel_string"] == 'CNN':
+        assert "cnn" in config_meta
+
+    if "cnn" in config_meta:
+        assert config['SGSModel_string'] == 'CNN'
+        assert 'input_stepnorm' in config
+
+        cnn_config_name = config_meta["cnn"]
+        cnn_config_path = f"{cnn_config_base}{cnn_config_name}.yaml"
+        print(cnn_config_path)
+        cnn_config = load_cnn_config(cnn_config_path)[0]
+
+        if norm_path is None:
+            norm_path = f"{cnn_config['data']['train_dir']}/{cnn_config['data']['norm_file']}"
+
+        assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
+        config['norm_path'] = norm_path
+
+
+
+        cnn_path = f"{cnn_path_base}{cnn_config_name}.onnx"
+        assert os.path.exists(cnn_path), f"Invalid CNN path: {cnn_path}"
+
+        config["cnn_config"] = cnn_config
+        config["cnn_path"] = cnn_path
+
+    return config

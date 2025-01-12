@@ -1,0 +1,5 @@
+data: re20k-kf25
+architecture: big
+channels: psiomega
+training: reg
+nchw_map: [0, 3, 2, 1]

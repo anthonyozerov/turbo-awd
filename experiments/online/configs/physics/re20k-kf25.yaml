@@ -1,0 +1,9 @@
+# Reynolds number
+Re: 20.0e+3
+# Forcing wavenumber in x and y
+fkx: 25
+fky: 25
+# Rayleigh drag coefficient
+alpha: 0.1
+#Coriolis parameter
+beta: 0

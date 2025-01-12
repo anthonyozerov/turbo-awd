@@ -1,23 +1,35 @@
-from py2d.Py2D_solver import Py2D_solver
 import sys
-
-sys.path.insert(0, "../../turboawd")
-print(sys.path)
-import os
-
-print(os.path.abspath(sys.path[0]))
 import yaml
+from py2d.Py2D_solver import Py2D_solver
+from turboawd.utils import load_online_config
+
+# sys.path.insert(0, "../../turboawd")
+
 
 # Load configuration file
 config_path = sys.argv[1]
-with open(config_path) as f:
-    config = yaml.safe_load(f)
-    print(config_path)
+config = load_online_config(config_path)
+print(config)
 
-if len(sys.argv) > 2:
-    cnn_config_path = sys.argv[2]
-    print(cnn_config_path)
-else:
-    cnn_config_path = None
+save_dir = "results/" + config_path.split("/")[-1].split(".")[0]
 
-Py2D_solver(**config, cnn_config_path=cnn_config_path)
+Py2D_solver(
+    Re=config["Re"],
+    fkx=config["fkx"],
+    fky=config["fky"],
+    alpha=config["alpha"],
+    beta=config["beta"],
+    NX=config["NX"],
+    SGSModel_string=config["SGSModel_string"],
+    eddyViscosityCoeff=config["eddyViscosityCoeff"],
+    dt=config["dt"],
+    dealias=config["dealias"],
+    saveData=config["saveData"],
+    tSAVE=config["tSAVE"],
+    tTotal=config["tTotal"],
+    readTrue=config["readTrue"],
+    ICnum=config["ICNum"],
+    resumeSim=config["resumeSim"],
+    full_config=config,
+    save_dir=save_dir,
+)

@@ -1,0 +1,6 @@
+# Save data?
+saveData: True
+# ?
+readTrue: False
+# resume?
+resumeSim: False
