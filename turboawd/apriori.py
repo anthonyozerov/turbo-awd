@@ -2,15 +2,22 @@ import numpy as np
 from turboawd.utils import load_data, denormalize
 from py2d.dealias import multiply_dealias
 from py2d.initialize import initialize_wavenumbers_rfft2
-from py2d.convert import Omega2Psi
 from py2d.spectra import (
     energyTransfer_spectra,
     enstrophyTransfer_spectra,
 )
+from py2d.spectra import (
+    TKE_angled_average,
+    enstrophy_angled_average,
+)
+from py2d.convert import Omega2Psi
 import onnxruntime as rt
 
 
 def get_energytransfer(psi, pi, dealias):
+    assert psi.ndim == 4
+    assert pi.ndim == 4
+
     n = psi.shape[0]
     arr = [
         np.mean(multiply_dealias(psi[i, 0, :, :], pi[i, 0, :, :], dealias=dealias))
@@ -20,6 +27,9 @@ def get_energytransfer(psi, pi, dealias):
 
 
 def get_enstrophytransfer(omega, pi, dealias):
+    assert omega.ndim == 4
+    assert pi.ndim == 4
+
     n = omega.shape[0]
     arr = [
         np.mean(multiply_dealias(omega[i, 0, :, :], pi[i, 0, :, :], dealias=dealias))
@@ -53,8 +63,24 @@ def get_energytransfer_spectrum(psi, pi):
     return Z
 
 
+def get_enstrophy_spectrum(Omega):
+    Z, wavenumbers_angled_enstrophy = enstrophy_angled_average(Omega, spectral=False)
+    return Z, wavenumbers_angled_enstrophy
+
+
+def get_tke_spectrum(Omega):
+    Psi = Omega2Psi(Omega, invKsq=invKsq)
+    TKE, wavenumbers_angled_TKE = TKE_angled_average(Psi, Omega, spectral=False)
+    return TKE, wavenumbers_angled_TKE
+
+
 def apriori(
-    pi_model, input_data_path, output_data_path, output_denorm_path, output_norm_key, wavelet_path=None
+    pi_model,
+    input_data_path,
+    output_data_path,
+    output_denorm_path,
+    output_norm_key,
+    wavelet_path=None,
 ):
     """
     Calculate a priori performance metrics for the model output.
