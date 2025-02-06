@@ -1,0 +1,6 @@
+# Time step
+dt: 0.5e-4
+# Number of grid points in x and y
+NX: 1024
+
+dealias: False
