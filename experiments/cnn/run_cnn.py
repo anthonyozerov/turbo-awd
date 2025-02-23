@@ -7,6 +7,7 @@ import h5py
 import torch
 import lightning as L
 import onnxruntime as rt
+import random
 
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
@@ -76,6 +77,26 @@ output_val = torch.from_numpy(output_val).float()
 
 trainset = TensorDataset(input_train, output_train)
 valset = TensorDataset(input_val, output_val)
+
+# Add custom rotated dataset for training
+class RotatedDataset(torch.utils.data.Dataset):
+    def __init__(self, dataset):
+        self.dataset = dataset
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        inp, out = self.dataset[idx]
+        # Choose a random rotation: 90, 180, or 270 degrees (k rotations)
+        k = random.choice([0, 1, 2, 3])
+        # Assume images have shape (channels, H, W)
+        inp = torch.rot90(inp, k, dims=(1, 2))
+        out = torch.rot90(out, k, dims=(1, 2))
+        return inp, out
+
+# Wrap the trainset with random rotations
+trainset = RotatedDataset(trainset)
 
 # define dataloaders
 trainloader = DataLoader(trainset, **config["dataloader_train"])
