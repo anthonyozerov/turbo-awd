@@ -8,6 +8,7 @@ import torch
 import lightning as L
 import onnxruntime as rt
 import random
+import glob
 
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
@@ -119,12 +120,13 @@ cnn = CNN(cnn=network_module, optimizer_config=config["optimizer"], verbose=True
 print("Testing saving ONNX...")
 input_sample = torch.randn(batch[0].shape)
 savepath = f"{config['checkpoint']['dirpath']}/{name}.onnx"
-cnn.to_onnx(savepath, input_sample, export_params=True,
+savepath_test = f"{config['checkpoint']['dirpath']}/{name}_test.onnx"
+cnn.to_onnx(savepath_test, input_sample, export_params=True,
             input_names=["input"], output_names=["output"],
             dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}})
 # test running ONNX
 print("Testing loading ONNX...")
-sess = rt.InferenceSession(savepath)
+sess = rt.InferenceSession(savepath_test)
 rt_inputs = {sess.get_inputs()[0].name: input_sample.detach().numpy()}
 rt_outs = sess.run(None, rt_inputs)
 assert rt_outs[0].shape == batch[1].shape
@@ -135,6 +137,7 @@ rt_outs = sess.run(None, rt_inputs)
 assert rt_outs[0].shape == (smallbatch_size, 1, 128, 128)
 # end session
 del sess
+os.remove(savepath_test)
 
 ########################## TRAIN CNN ##############################
 print('Setting up training')
@@ -142,6 +145,15 @@ print('Setting up training')
 # define checkpoint callback
 config["checkpoint"]["filename"] = name + "-{epoch:02d}"
 checkpoint_callback = ModelCheckpoint(**config["checkpoint"])
+
+# search for an existing checkpoint to resume training
+resume_checkpoint = None
+ckpt_dir = config["checkpoint"]["dirpath"]
+checkpoint_pattern = os.path.join(ckpt_dir, name + "-*.ckpt")
+ckpt_files = sorted(glob.glob(checkpoint_pattern))
+if ckpt_files:
+    resume_checkpoint = ckpt_files[-1]
+    print(f"Resuming training from {resume_checkpoint}")
 
 # set up weights and biases logger
 config["wandb"]["name"] = name
@@ -151,7 +163,7 @@ wandb_logger = WandbLogger(config=config, **config["wandb"])
 trainer = L.Trainer(
     logger=wandb_logger, callbacks=[checkpoint_callback], **config["trainer"]
 )
-trainer.fit(model=cnn, train_dataloaders=trainloader, val_dataloaders=valloader)
+trainer.fit(model=cnn, train_dataloaders=trainloader, val_dataloaders=valloader, ckpt_path=resume_checkpoint)
 
 # save model as ONNX
 cnn.to_onnx(savepath, input_sample, export_params=True)

@@ -12,7 +12,7 @@ checkpoint:
   mode: 'min'
   dirpath: 'checkpoints'
 trainer:
-  max_epochs: 4000
+  max_epochs: 8000
 optimizer:
   lr: 0.00002
 wandb:
