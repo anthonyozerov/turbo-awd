@@ -39,7 +39,7 @@ data_B = {
 
 # dataset C: Re300K validation set
 data_C = {
-    'root': '../../fdns-data/Re300K_kf25_NLES128',
+    'root': '../../fdns-data/Re20K_kf4_NLES128',
     'input': 'FDNS_big_val.mat',
     'output': 'FDNS PI_val.mat',
     'norm': 'Normalization_coefficients_val.mat',
