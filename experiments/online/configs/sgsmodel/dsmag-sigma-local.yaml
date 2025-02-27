@@ -1,0 +1,4 @@
+# The SGS model to use
+SGSModel_string: 'DSMAG_sigma_Local'
+# Coefficient for eddy viscosity
+eddyViscosityCoeff: 0

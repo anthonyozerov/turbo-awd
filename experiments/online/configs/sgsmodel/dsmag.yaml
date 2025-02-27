@@ -1,0 +1,4 @@
+# The SGS model to use
+SGSModel_string: 'DSMAG'
+# Coefficient for eddy viscosity
+eddyViscosityCoeff: 0
