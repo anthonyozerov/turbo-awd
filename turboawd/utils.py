@@ -215,6 +215,7 @@ def apply_cnn(
     finaloutput_denorm_key=None,
     batch_size=1,
     reorder=None,
+    force_gpu=False,
 ):
     """
     Apply a CNN model to input data, using ONNX runtime.
@@ -271,8 +272,13 @@ def apply_cnn(
         assert train_norm_path is not None
         assert train_norm_key is not None
 
-    # load the ONNX model
-    sess = rt.InferenceSession(onnx_path)
+    # load the ONNX model as an inference session
+    if force_gpu:
+        # check that CUDA is in available providers
+        assert "CUDAExecutionProvider" in rt.get_available_providers()
+        sess = rt.InferenceSession(onnx_path, providers=["CUDAExecutionProvider"])
+    else:
+        sess = rt.InferenceSession(onnx_path)
 
     # load the input data, normalizing the channels as appropriate using
     # the provided normalization file
