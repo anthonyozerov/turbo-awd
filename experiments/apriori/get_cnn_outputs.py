@@ -9,7 +9,7 @@ from turboawd.apriori import apriori
 from turboawd.utils import change_onnx_dims
 
 # create results directory
-os.makedirs("results/Re20K_kf25_NLES128", exist_ok=True)
+os.makedirs("results", exist_ok=True)
 
 # define the CNN models to evaluate
 experiments = [
