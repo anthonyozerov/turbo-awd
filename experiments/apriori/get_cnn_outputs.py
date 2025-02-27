@@ -67,7 +67,7 @@ for k, data in datas.items():
         config, name = load_cnn_config(config_paths[i])
         # apply CNN to input data with specified parameters
         cnn_outputs = apply_cnn(cnn_path, config, input_data_path, input_centerscale=True, batch_size=128,
-                                train_norm_path=output_norm_path, train_norm_key='IPI')
+                                train_norm_path=output_norm_path, train_norm_key='IPI', force_gpu=True)
 
         # save CNN outputs to HDF5 file
         output_path = f"results/{k}/{name}.h5"
