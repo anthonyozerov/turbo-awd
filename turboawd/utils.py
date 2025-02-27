@@ -4,7 +4,12 @@ import h5py
 import numpy as np
 from tqdm import tqdm
 from scipy.io import loadmat
+import matplotlib.pyplot as plt
 
+def plot_field(field):
+    lim = np.max(np.abs(field))
+    plt.imshow(field, cmap='bwr', vmin=-lim, vmax=lim)
+    plt.colorbar()
 
 def load_cnn_config(config_path):
     """
@@ -60,6 +65,8 @@ def normalize(data, norm_path, norm_keys, sd_only=False):
     nchannels = data.shape[1]
     assert nchannels == len(norm_keys)
 
+    data_norm = np.zeros_like(data)
+
     normalization = loadmat(norm_path)
 
     for i in range(nchannels):
@@ -67,11 +74,11 @@ def normalize(data, norm_path, norm_keys, sd_only=False):
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
 
         if sd_only:
-            data[:, i, :, :] = data[:, i, :, :] / sdev
+            data_norm[:, i, :, :] = data[:, i, :, :] / sdev
         else:
-            data[:, i, :, :] = (data[:, i, :, :] - mean) / sdev
+            data_norm[:, i, :, :] = (data[:, i, :, :] - mean) / sdev
 
-    return data
+    return data_norm
 
 
 def denormalize(data, norm_path, norm_keys, sd_only=False):
@@ -79,17 +86,20 @@ def denormalize(data, norm_path, norm_keys, sd_only=False):
     nchannels = data.shape[1]
     assert nchannels == len(norm_keys)
 
+    # empty array with same shape
+    data_denorm = np.zeros(data.shape)
+
     normalization = loadmat(norm_path)
 
     for i in range(nchannels):
         mean = normalization["MEAN_" + norm_keys[i]][0][0]
         sdev = normalization["SDEV_" + norm_keys[i]][0][0]
         if sd_only:
-            data[:, i, :, :] = data[:, i, :, :] * sdev
+            data_denorm[:, i, :, :] = data[:, i, :, :] * sdev
         else:
-            data[:, i, :, :] = data[:, i, :, :] * sdev + mean
+            data_denorm[:, i, :, :] = data[:, i, :, :] * sdev + mean
 
-    return data
+    return data_denorm
 
 
 def load_data(
@@ -148,8 +158,15 @@ def load_data(
 
     assert os.path.exists(path), f"Invalid data path: {path}"
 
-    with h5py.File(path, "r") as f:
-        data = [np.array(f[key], np.float32) for key in keys]
+    try:
+        with h5py.File(path, "r") as f:
+            data = [np.array(f[key], np.float32) for key in keys]
+    except OSError as e:
+        print(e)
+        print('loading data using scipy loadmat')
+        mat = loadmat(path)
+        data = [np.array(mat[key], np.float32) for key in keys]
+
     data = np.array(data)
     # data is [channels, Nlon, Nlat, N]
     data = np.moveaxis(data, -1, 0)
@@ -216,14 +233,23 @@ def apply_cnn(
         Path to the normalization file for the input data, by default None.
         If not None, each channel in the input data will be normalized using
         the mean and std given in the normalization file.
-    output_denorm_path : str, optional
-        Path to the normalization file for the output data, by default None.
-        If not None, the output data will be denormalized using the mean and std
+    train_norm_path : str, optional
+        Path to the normalization file used during training, by default None.
+        Required if the model is a residual model.
+    train_norm_key : str, optional
+        Key to normalize the training data, by default None.
+        Required if the model is a residual model.
+    finaloutput_denorm_path : str, optional
+        Path to the normalization file for the final output data, by default None.
+        If not None, the final output data will be denormalized using the mean and std
         given in the normalization file.
-    output_norm_key : str, optional
-        Key to denormalize the output data, by default None.
+    finaloutput_denorm_key : str, optional
+        Key to denormalize the final output data, by default None.
     batch_size : int, optional
         Batch size to use when running the model, by default 1.
+    reorder : list of int, optional
+        List of axes to reorder the input to the model and output from it.
+        By default the CNN must input and output NCHW.
 
     Returns
     -------
@@ -232,7 +258,6 @@ def apply_cnn(
     """
 
     import onnxruntime as rt
-    import onnx
 
 
     if "nchw_map" in config:
@@ -249,7 +274,8 @@ def apply_cnn(
     # load the ONNX model
     sess = rt.InferenceSession(onnx_path)
 
-    # load the input data
+    # load the input data, normalizing the channels as appropriate using
+    # the provided normalization file
     norm_keys = None if input_norm_path is None else config["input_norm_keys"]
     input_data = load_data(
         input_data_path,
@@ -280,6 +306,10 @@ def apply_cnn(
     if reorder is not None:
         output_data = np.moveaxis(output_data, reorder, [0, 1, 2, 3])
 
+    # if the model is a residual model, we denormalize its output scale
+    # according to the normalization constant used in training,
+    # add the residual, then renormalize it (both scale and location) using
+    # the constants from training.
     if "residual" in config:
         output_data = denormalize(
             output_data, train_norm_path, [train_norm_key], sd_only=True
@@ -290,6 +320,7 @@ def apply_cnn(
             output_data, train_norm_path, [train_norm_key], sd_only=False
         )
 
+    # apply denormalization to final output of CNN (model+residual)
     if finaloutput_denorm_path is not None:
         output_data = denormalize(
             output_data, finaloutput_denorm_path, [finaloutput_denorm_key]
