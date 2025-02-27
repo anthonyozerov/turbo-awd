@@ -1,4 +1,4 @@
 data: re20k-kf4
 architecture: big
 channels: psiomega
-training: reg-48k
+training: reg
