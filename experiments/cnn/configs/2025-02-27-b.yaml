@@ -1,0 +1,4 @@
+data: re20k-kf4
+architecture: big
+channels: psiomega-rgm4
+training: reg-48k

@@ -1,0 +1,4 @@
+data: re300k-kf25
+architecture: big
+channels: psiomega
+training: reg-48k
