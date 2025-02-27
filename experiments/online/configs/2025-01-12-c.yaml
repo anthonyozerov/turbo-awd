@@ -1,3 +1,5 @@
+# residual CNN run to test new pipeline
+
 sgsmodel: cnn
 cnn: 2025-01-01-b
 library: onnx

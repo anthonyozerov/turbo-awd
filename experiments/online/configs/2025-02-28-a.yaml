@@ -1,4 +1,4 @@
-# legacy CNN run to test new pipeline
+# legacy CNN run A->A
 
 sgsmodel: cnn
 cnn: legacy-cnn

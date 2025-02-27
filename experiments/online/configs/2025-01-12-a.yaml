@@ -1,3 +1,5 @@
+# legacy CNN run to test new pipeline
+
 sgsmodel: cnn
 cnn: legacy-cnn
 library: onnx

@@ -1,4 +1,4 @@
-# residual CNN run to test new pipeline
+# residual CNN run A->A
 
 sgsmodel: cnn
 cnn: 2025-02-23-d

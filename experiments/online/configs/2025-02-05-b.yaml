@@ -1,9 +1,6 @@
-# orig CNN run to test new pipeline
+# GM4 baseline
 
-sgsmodel: cnn
-cnn: 2025-01-01-a
-library: onnx
-input_stepnorm: True
+sgsmodel: dsmag
 
 physics: re20k-kf25
 resolution: normal
@@ -12,5 +9,5 @@ boilerplate: boilerplate
 # Total time to run
 tTotal: 100
 # Time interval at which to save
-tSAVE: 1.0e-1
+tSAVE: 5.0e-1
 ICNum: fdns_ic_0_train
