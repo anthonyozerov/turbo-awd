@@ -4,9 +4,8 @@
 import numpy as np
 import h5py
 import os
-from turboawd.utils import load_cnn_config, load_data, apply_cnn
-from turboawd.apriori import apriori
-from turboawd.utils import change_onnx_dims
+from turboawd.utils import load_cnn_config, apply_cnn
+import yaml
 
 # create results directory
 os.makedirs("results", exist_ok=True)
@@ -21,32 +20,9 @@ experiments = [
 cnn_paths = [f"../cnn/trained-cnns/{e}.onnx" for e in experiments]
 config_paths = [f"../cnn/configs/{e}.yaml" for e in experiments]
 
-# dataset A: Re20K, kf=25
-data_A = {
-    'root': '../../fdns-data/Re20K_kf25_NLES128',
-    'input': 'FDNS_big_val.mat',
-    'output': 'FDNS PI_val.mat',
-    'norm': 'Normalization_coefficients_val.mat',
-}
-
-# dataset B: Re300K, kf=25
-data_B = {
-    'root': '../../fdns-data/Re300K_kf25_NLES128',
-    'input': 'FDNS_big_0.mat',
-    'output': 'FDNS PI_0.mat',
-    'norm': 'Normalization_coefficients_0.mat',
-}
-
-# dataset C: Re300K validation set
-data_C = {
-    'root': '../../fdns-data/Re20K_kf4_NLES128',
-    'input': 'FDNS_big_val.mat',
-    'output': 'FDNS PI_val.mat',
-    'norm': 'Normalization_coefficients_val.mat',
-}
-
-# combine all datasets into a dictionary
-datas = {'A': data_A, 'B': data_B, 'C': data_C}
+# Load dataset definitions from YAML
+with open('data_defs.yaml', 'r') as f:
+    datas = yaml.safe_load(f)
 
 # process each dataset
 for k, data in datas.items():

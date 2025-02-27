@@ -1,0 +1,17 @@
+A:  # Re20K, kf=25
+  root: ../../fdns-data/Re20K_kf25_NLES128
+  input: FDNS_big_val.mat
+  output: FDNS PI_val.mat
+  norm: Normalization_coefficients_val.mat
+
+B:  # Re300K, kf=25
+  root: ../../fdns-data/Re300K_kf25_NLES128
+  input: FDNS_big_0.mat
+  output: FDNS PI_0.mat
+  norm: Normalization_coefficients_0.mat
+
+C:  # Re20K, kf=4
+  root: ../../fdns-data/Re20K_kf4_NLES128
+  input: FDNS_big_val.mat
+  output: FDNS PI_val.mat
+  norm: Normalization_coefficients_val.mat
