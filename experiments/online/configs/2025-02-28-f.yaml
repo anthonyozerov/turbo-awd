@@ -1,0 +1,16 @@
+# orig CNN run A->A
+
+sgsmodel: cnn
+cnn: 2025-02-23-a
+library: onnx
+input_stepnorm: True
+
+physics: re20k-kf25
+resolution: normal
+boilerplate: boilerplate
+
+# Total time to run
+tTotal: 100
+# Time interval at which to save
+tSAVE: 1.0e-1
+ICNum: fdns_ic_0_train
