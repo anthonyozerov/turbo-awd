@@ -1,0 +1,14 @@
+# short-term GM4 run
+# SETTING A
+
+sgsmodel: gm4
+
+physics: re20k-kf25
+resolution: normal
+boilerplate: boilerplate
+
+# Total time to run
+tTotal: 10
+# Time interval at which to save
+tSAVE: 5.0e-2
+ICNum: A0
