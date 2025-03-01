@@ -34,4 +34,4 @@ os.makedirs(filtered_dir+'/data', exist_ok=True)
 # filter and save omegas
 for i in range(omegas.shape[0]):
     omega_filtered = filter2D(omegas[i], filterType='gaussian', coarseGrainType='spectral', Delta=Delta, Ngrid=np.ones(2, dtype=int)*NCoarse)
-    savemat(os.path.join(filtered_dir+'/data', f'{i}.mat'), {'Omega': omega_filtered})
+    savemat(os.path.join(filtered_dir+'/data', f'{i+1}.mat'), {'Omega': omega_filtered})

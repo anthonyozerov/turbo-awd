@@ -1,14 +1,14 @@
-# DNS run to create FDNS data
-# SETTING C
+# short-term DNS run
+# SETTING B
 
 sgsmodel: nosgs
 
-physics: re20k-kf4
+physics: re300k-kf25
 resolution: 1024
 boilerplate: boilerplate
 
 # Total time to run
-tTotal: 100
+tTotal: 10
 # Time interval at which to save
-tSAVE: 5.0e-1
-ICNum: 1
+tSAVE: 5.0e-2
+ICNum: B0
