@@ -13,7 +13,7 @@ from turboawd.apriori import (
 )
 
 
-def aposteriori(omegas, pis, psis=None):
+def aposteriori(omegas, pis=None, psis=None):
     """
     Calculate a posteriori performance metrics from online simulation data.
 
@@ -42,30 +42,35 @@ def aposteriori(omegas, pis, psis=None):
         psis = np.array(psis)
 
     # Energy and enstrophy transfer spectra
-    enstrophy_transfer_spectra = [
-        get_enstrophytransfer_spectrum(omegas[i, :, :], pis[i, :, :]) for i in range(n)
-    ]
-    enstrophytransfer_spectrum = np.mean(np.array(enstrophy_transfer_spectra), axis=0)
+    if pis is not None:
+        enstrophy_transfer_spectra = [
+            get_enstrophytransfer_spectrum(omegas[i, :, :], pis[i, :, :]) for i in range(n)
+        ]
+        enstrophytransfer_spectrum = np.mean(np.array(enstrophy_transfer_spectra), axis=0)
 
-    energy_transfer_spectra = [
-        get_energytransfer_spectrum(psis[i, :, :], pis[i, :, :]) for i in range(n)
-    ]
-    energytransfer_spectrum = np.mean(np.array(energy_transfer_spectra), axis=0)
+        energy_transfer_spectra = [
+            get_energytransfer_spectrum(psis[i, :, :], pis[i, :, :]) for i in range(n)
+        ]
+        energytransfer_spectrum = np.mean(np.array(energy_transfer_spectra), axis=0)
 
     enstrophy_spectra = [get_enstrophy_spectrum(omegas[i])[0] for i in range(n)]
     enstrophy_spectrum = np.mean(np.array(enstrophy_spectra), axis=0)
     tke_spectra = [get_tke_spectrum(omegas[i])[0] for i in range(n)]
     tke_spectrum = np.mean(np.array(tke_spectra), axis=0)
 
-    return dict(
-        enstrophytransfer_spectrum=enstrophytransfer_spectrum,
-        energytransfer_spectrum=energytransfer_spectrum,
+    result = dict(
         enstrophy_spectrum=enstrophy_spectrum,
         tke_spectrum=tke_spectrum,
     )
+    if pis is not None:
+        result.update(
+            enstrophytransfer_spectrum=enstrophytransfer_spectrum,
+            energytransfer_spectrum=energytransfer_spectrum,
+        )
+    return result
 
 
-def load_online_data(path):
+def load_online_data(path, last=None):
     """
     Load online data from .mat files in the specified directory.
 
@@ -94,8 +99,12 @@ def load_online_data(path):
     omegas = []
     pis = []
 
+    if last is not None:
+        start = max_idx + 1 - last
+    else:
+        start = 1
     # Loop through each index from 1 to max_idx
-    for i in range(1, max_idx + 1):
+    for i in range(start, max_idx + 1):
         # Construct the expected filename and check if it exists
         if not os.path.exists(os.path.join(path, f"{i}.mat")):
             raise FileNotFoundError(f"Missing file {i}.mat in {path}")
@@ -105,7 +114,12 @@ def load_online_data(path):
 
         # Append the 'Omega' and 'PiOmega' values to the respective lists
         omegas.append(data["Omega"])
-        pis.append(data["PiOmega"])
+        if 'PiOmega' in data:
+            pis.append(data["PiOmega"])
 
     # Convert the lists to numpy arrays and return them as a tuple
-    return np.array(omegas), np.array(pis)
+    if len(pis) == 0:
+        return np.array(omegas), None
+    else:
+        assert len(omegas) == len(pis)
+        return np.array(omegas), np.array(pis)

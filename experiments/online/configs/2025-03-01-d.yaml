@@ -1,0 +1,13 @@
+# short-term DNS run
+
+sgsmodel: nosgs
+
+physics: re20k-kf25
+resolution: 1024
+boilerplate: boilerplate
+
+# Total time to run
+tTotal: 5
+# Time interval at which to save
+tSAVE: 5.0e-2
+ICNum: A0
