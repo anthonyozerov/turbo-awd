@@ -39,11 +39,14 @@ for k, data in datas.items():
     # process each CNN model
     for i in range(len(cnn_paths)):
         cnn_path = cnn_paths[i]
+
         # load CNN configuration and get model name
         config, name = load_cnn_config(config_paths[i])
+        model_output_norm = os.path.join(config['data']['train_dir'], config['data']['norm_file'])
+
         # apply CNN to input data with specified parameters
         cnn_outputs = apply_cnn(cnn_path, config, input_data_path, input_centerscale=True, batch_size=128,
-                                train_norm_path=output_norm_path, train_norm_key='IPI', force_gpu=True)
+                                train_norm_path=model_output_norm, train_norm_key='IPI', force_gpu=True)
 
         # save CNN outputs to HDF5 file
         output_path = f"results/{k}/{name}.h5"
