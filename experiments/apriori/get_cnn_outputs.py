@@ -13,8 +13,13 @@ os.makedirs("results", exist_ok=True)
 # define the CNN models to evaluate
 experiments = [
     'legacy-cnn',
+    '2025-01-01-a',
+    '2025-01-01-b',
+    '2025-02-23-a',
+    '2025-02-23-b',
     '2025-02-23-c',
     '2025-02-23-d',
+    '2025-02-27-b',
 ]
 # generate paths to CNN models and their configurations
 cnn_paths = [f"../cnn/trained-cnns/{e}.onnx" for e in experiments]
