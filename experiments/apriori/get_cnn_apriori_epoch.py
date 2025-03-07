@@ -10,6 +10,7 @@ from turboawd.utils import load_cnn_config, apply_cnn
 from turboawd.apriori import apriori
 import yaml
 import argparse
+import json
 
 a = argparse.ArgumentParser()
 a.add_argument('-e', '--experiments', nargs='+', required=True, help='Experiments to evaluate')
@@ -92,6 +93,12 @@ for k, data in datas.items():
             )
 
 # save results
-import json
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
 with open(output, 'w') as f:
-    json.dump(results, f)
+    json.dump(results, f, cls=NumpyEncoder)
