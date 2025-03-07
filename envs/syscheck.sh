@@ -4,8 +4,7 @@
 #SBATCH --partition=jsteinhardt
 #SBATCH --gres=gpu:1
 
-conda activate turboawd-online
 # print which python is running
-which python
+conda run -n turboawd-online --live-stream which python
 # check onnxruntime and providers
-python -c "import onnxruntime as ort; print(ort.get_available_providers())"
+conda run -n turboawd-online --live-stream python -c "import onnxruntime as ort; print(ort.get_available_providers())"
