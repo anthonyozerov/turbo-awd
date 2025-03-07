@@ -42,7 +42,7 @@ for e in experiments:
     fnames = [f"../cnn/checkpoints/{f}" for f in fnames if f.startswith(prefix) and f.endswith('.onnx')]
     # fnames are of the form e-i.onnx, where i is the epoch number
     # sort by epoch number
-    fnames.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
+    fnames.sort(key=lambda x: int(x.split('epoch')[-1].split('.')[0]))
     paths = [f"../cnn/checkpoints/{f}" for f in fnames]
     cnn_paths[e] = paths
 
