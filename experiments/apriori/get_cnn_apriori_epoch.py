@@ -75,7 +75,7 @@ for k, data in datas.items():
 
         for cnn_path in cnn_paths[e]:
             epoch = int(cnn_path.split('_')[-1].split('.')[0])
-            cnn_name = cnn_paths[e][k].split('/')[-1].split('.')[0]
+            cnn_name = cnn_paths[e][k].split('epoch')[-1].split('.')[0]
 
             # load CNN configuration and get model name
             # model_output_norm = os.path.join(config['data']['train_dir'], config['data']['norm_file'])
