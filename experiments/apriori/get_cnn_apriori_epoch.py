@@ -43,8 +43,7 @@ for e in experiments:
     # fnames are of the form e-i.onnx, where i is the epoch number
     # sort by epoch number
     fnames.sort(key=lambda x: int(x.split('epoch')[-1].split('.')[0]))
-    paths = [f"../cnn/checkpoints/{f}" for f in fnames]
-    cnn_paths[e] = paths
+    cnn_paths[e] = fnames
 
 # Load dataset definitions from YAML
 with open('data_defs.yaml', 'r') as f:
