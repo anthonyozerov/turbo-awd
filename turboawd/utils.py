@@ -216,6 +216,8 @@ def apply_cnn(
     batch_size=1,
     reorder=None,
     force_gpu=False,
+    before = None,
+    after = None,
 ):
     """
     Apply a CNN model to input data, using ONNX runtime.
@@ -290,6 +292,8 @@ def apply_cnn(
         norm_path=input_norm_path,
         norm_keys=norm_keys,
         tensor=False,
+        before=before,
+        after=after,
     )
 
     rt_inputs = {sess.get_inputs()[0].name: input_data}
