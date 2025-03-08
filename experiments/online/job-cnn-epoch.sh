@@ -9,4 +9,4 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 
-python run_online.py $1 $2
+conda run -n turboawd-online --live-stream python run_online.py $1 $2
