@@ -88,7 +88,7 @@ for k, data in datas.items():
                                     train_norm_path=output_norm_path, train_norm_key='IPI', force_gpu=True, before=num_images)
 
             # apriori analysis of results
-            results[k][e] = apriori(
+            results[k][e][epoch] = apriori(
                 cnn_outputs, input_data_path, output_data_path, output_norm_path, "IPI"
             )
 
