@@ -72,7 +72,7 @@ def aposteriori(omegas, pis=None, psis=None):
 
 def load_online_data(path, last=None):
     """
-    Load online data from .mat files in the specified directory.
+    Load online data from Py2D output in the specified directory.
 
     The function expects the .mat files to be named in a sequential numeric
     order (e.g., 1.mat, 2.mat, ..., n.mat) and loads them in this order.
@@ -89,8 +89,24 @@ def load_online_data(path, last=None):
     FileNotFoundError: If any expected .mat file is missing in the sequence.
     """
 
+    data_path = os.path.join(path, "data")
+    assert os.path.exists(data_path), f"Data directory not found in {path}"
+
+    parameters_path = os.path.join(path, "parameters.txt")
+    assert os.path.exists(parameters_path), f"parameters.txt file not found in {path}"
+
+    tsave = None
+    with open(parameters_path, "r") as f:
+        for line in f:
+            if "tSAVE" in line:
+                tsave = float(line.split(":")[1].strip())
+                break
+
+    assert tsave is not None, "tSAVE not found in parameters.txt"
+
+
     # Get a list of all .mat files in the specified directory
-    filenames = [f for f in os.listdir(path) if f.endswith(".mat")]
+    filenames = [f for f in os.listdir(data_path) if f.endswith(".mat")]
 
     # Determine the highest index number from the filenames
     max_idx = max([int(f.split(".")[0]) for f in filenames])
@@ -106,20 +122,44 @@ def load_online_data(path, last=None):
     # Loop through each index from 1 to max_idx
     for i in range(start, max_idx + 1):
         # Construct the expected filename and check if it exists
-        if not os.path.exists(os.path.join(path, f"{i}.mat")):
+        if not os.path.exists(os.path.join(data_path, f"{i}.mat")):
             raise FileNotFoundError(f"Missing file {i}.mat in {path}")
 
         # Load the .mat file
-        data = loadmat(os.path.join(path, f"{i}.mat"))
+        data = loadmat(os.path.join(data_path, f"{i}.mat"))
 
         # Append the 'Omega' and 'PiOmega' values to the respective lists
         omegas.append(data["Omega"])
         if 'PiOmega' in data:
             pis.append(data["PiOmega"])
 
+    times = np.arange(start, max_idx + 1) * tsave
+
     # Convert the lists to numpy arrays and return them as a tuple
     if len(pis) == 0:
-        return np.array(omegas), None
+        return np.array(omegas), None, times
     else:
         assert len(omegas) == len(pis)
-        return np.array(omegas), np.array(pis)
+        return np.array(omegas), np.array(pis), times
+
+
+def get_divergence(times1, field1, times2, field2):
+
+    # get the intersection of the two series of times
+    times = np.intersect1d(times1, times2)
+    # subset omega_sgs and omega_fdns to the intersection of the two series of times
+    idx1 = np.where(np.isin(times1, times))[0]
+    field1_sub = field1[idx1]
+    idx2 = np.where(np.isin(times2, times))[0]
+    field2_sub = field2[idx2]
+
+    assert field1_sub.shape == field2_sub.shape
+
+    # calculate mean squared error between the vorticity in FDNS and SGS
+    mse = np.mean((field1_sub - field2_sub)**2, axis=(1,2))
+
+    # calculate variance of the SGS vorticity
+    var1 = np.var(field1_sub, axis=(1,2))
+    var2 = np.var(field2_sub, axis=(1,2))
+
+    return times, mse, var1, var2

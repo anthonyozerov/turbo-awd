@@ -1,8 +1,8 @@
-# short-term residual CNN run A->A
+# short-term CNN run A->A
 # SETTING A
 
 sgsmodel: cnn
-cnn: 2025-03-01-b
+cnn: 2025-03-01-a
 library: onnx
 input_stepnorm: True
 
