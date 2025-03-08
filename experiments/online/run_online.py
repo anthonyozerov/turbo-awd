@@ -8,7 +8,12 @@ from turboawd.utils import load_online_config
 
 # Load configuration file
 config_path = sys.argv[1]
-config = load_online_config(config_path)
+if len(sys.argv) > 2:
+    cnn_path_base = sys.argv[2] # e.g. "../cnn/trained-cnns/",
+else:
+    cnn_path_base = None
+
+config = load_online_config(config_path, cnn_path_base=cnn_path_base)
 print(config)
 
 save_dir = "results/" + config_path.split("/")[-1].split(".")[0]

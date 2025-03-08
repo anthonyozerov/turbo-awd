@@ -401,7 +401,10 @@ def load_online_config(config_path,
         assert config['SGSModel_string'] == 'CNN'
         assert 'input_stepnorm' in config
 
-        cnn_config_name = config_meta["cnn"]
+        cnn_name = config_meta["cnn"]
+
+        # remove the epoch postfix from the CNN name for loading the config
+        cnn_config_name = cnn_name.split('_epoch')[0]
         cnn_config_path = f"{cnn_config_base}{cnn_config_name}.yaml"
         print(cnn_config_path)
         cnn_config = load_cnn_config(cnn_config_path)[0]
@@ -414,7 +417,7 @@ def load_online_config(config_path,
 
 
 
-        cnn_path = f"{cnn_path_base}{cnn_config_name}.onnx"
+        cnn_path = f"{cnn_path_base}{cnn_name}.onnx"
         assert os.path.exists(cnn_path), f"Invalid CNN path: {cnn_path}"
 
         config["cnn_config"] = cnn_config

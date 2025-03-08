@@ -1,0 +1,17 @@
+# short-term CNN run A->A
+# SETTING A
+
+sgsmodel: cnn
+cnn: 2025-03-01-b
+library: onnx
+input_stepnorm: True
+
+physics: re20k-kf25
+resolution: normal
+boilerplate: boilerplate
+
+# Total time to run
+tTotal: 10
+# Time interval at which to save
+tSAVE: 5.0e-1
+ICNum: A0
