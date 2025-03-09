@@ -6,7 +6,7 @@ library: onnx
 input_stepnorm: True
 
 physics: re20k-kf25
-resolution: coarsetime
+resolution: normal
 boilerplate: boilerplate
 
 # Total time to run
