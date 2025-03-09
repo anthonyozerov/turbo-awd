@@ -94,10 +94,17 @@ for k, data in datas.items():
 
 # save results
 
+# first save as pickle
+import pickle
+with open(output+'.pkl', 'wb') as f:
+    pickle.dump(results, f)
+
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        if isinstance(obj, np.float32):
+            return float(obj)
         return super().default(obj)
 
 with open(output, 'w') as f:
