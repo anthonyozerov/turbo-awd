@@ -11,7 +11,7 @@ config_path = sys.argv[1]
 if len(sys.argv) > 2:
     cnn_path_base = sys.argv[2] # e.g. "../cnn/trained-cnns/",
 else:
-    cnn_path_base = None
+    cnn_path_base = "../cnn/trained-cnns/"
 
 config = load_online_config(config_path, cnn_path_base=cnn_path_base)
 print(config)
