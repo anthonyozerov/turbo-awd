@@ -5,7 +5,8 @@
 
 #SBATCH --job-name=online-cnn
 #SBATCH --partition=jsteinhardt
-#SBATCH --gres=gpu:A4000:1
-#SBATCH --cpus-per-task=8
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
 
-python run_online.py $1
+
+conda run -n turboawd-online --live-stream python run_online.py $1
