@@ -6,9 +6,9 @@ from tqdm import tqdm
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
 
-def plot_field(field):
+def plot_field(field, cmap='Spectral'):
     lim = np.max(np.abs(field))
-    plt.imshow(field, cmap='bwr', vmin=-lim, vmax=lim)
+    plt.imshow(field, cmap=cmap, vmin=-lim, vmax=lim)
     plt.colorbar()
 
 def load_cnn_config(config_path):
@@ -216,8 +216,8 @@ def apply_cnn(
     batch_size=1,
     reorder=None,
     force_gpu=False,
-    before = None,
-    after = None,
+    before=None,
+    after=None,
 ):
     """
     Apply a CNN model to input data, using ONNX runtime.
@@ -324,7 +324,7 @@ def apply_cnn(
         output_data = denormalize(
             output_data, train_norm_path, [train_norm_key], sd_only=True
         )
-        residual = load_data(input_data_path, [config["residual"]])
+        residual = load_data(input_data_path, [config["residual"]], before=before, after=after)
         output_data += residual
         output_data = normalize(
             output_data, train_norm_path, [train_norm_key], sd_only=False
