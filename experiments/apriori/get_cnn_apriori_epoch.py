@@ -122,7 +122,7 @@ for k, data in datas.items():
 
             # apriori analysis of results
             results[k][e][epoch] = apriori(
-                cnn_outputs, input_data_path, output_data_path, output_norm_path, "IPI"
+                cnn_outputs, input_data_path, output_data_path, output_norm_path, "IPI", before=num_images
             )
 
             if save_h5:

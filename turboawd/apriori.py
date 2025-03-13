@@ -81,6 +81,7 @@ def apriori(
     output_denorm_path,
     output_norm_key,
     wavelet_path=None,
+    before=None,
 ):
     """
     Calculate a priori performance metrics for the model output.
@@ -98,9 +99,9 @@ def apriori(
     output_norm_key : str
         Key to denormalize the output data
     """
-    pi_true = load_data(output_data_path, ["PI"])
-    psi_true = load_data(input_data_path, ["psi"])
-    omega_true = load_data(input_data_path, ["omega"])
+    pi_true = load_data(output_data_path, ["PI"], before=before)
+    psi_true = load_data(input_data_path, ["psi"], before=before)
+    omega_true = load_data(input_data_path, ["omega"], before=before)
 
     assert pi_model.shape == pi_true.shape
     n = pi_model.shape[0]
