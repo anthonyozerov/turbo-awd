@@ -84,7 +84,7 @@ for k, data in datas.items():
 
     if save_h5:
         save_dict = {}
-        true_pi = load_data(output_data_path, ["IPI"], before=num_images).squeeze()
+        true_pi = load_data(output_data_path, ["PI"], before=num_images).squeeze()
         save_dict["true_pi"] = true_pi
 
     # process each CNN model
@@ -126,7 +126,7 @@ for k, data in datas.items():
             )
 
             if save_h5:
-                save_dict[e][epoch] = cnn_outputs
+                save_dict[e][epoch] = cnn_outputs.squeeze()
 
     if save_h5:
         with h5py.File(f"results/{k}/{output}.h5", "w") as f:
