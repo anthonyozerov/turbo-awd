@@ -14,8 +14,13 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from torch.utils.data import DataLoader, TensorDataset
 
-
 from turboawd.utils import load_online_config, load_data
+
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+    print(f"CUDA available: {torch.cuda.is_available()}")
+    print(f"CUDA device count: {torch.cuda.device_count()}")
+    print(f"Current CUDA device: {torch.cuda.current_device()}")
 
 with open("../aposteriori/epoch_sd_results/epoch_sd.yaml", "r") as f:
     epoch_sd_results = yaml.safe_load(f)
@@ -120,10 +125,10 @@ class RotatedDataset(torch.utils.data.Dataset):
 # trainset = RotatedDataset(trainset)
 # create dataloaders, with random rotation for x_train
 trainloader = DataLoader(
-    trainset, batch_size=128, shuffle=True, num_workers=2
+    trainset, batch_size=128, shuffle=True, num_workers=0
 )
 valloader = DataLoader(
-    valset, batch_size=128, shuffle=False, num_workers=2
+    valset, batch_size=128, shuffle=False, num_workers=0
 )
 print('dataset created')
 
@@ -281,6 +286,7 @@ trainer = L.Trainer(
     logger=wandb_logger,
     callbacks=[checkpoint_callback],
     max_epochs=1000,
+    accelerator="gpu",
 )
 trainer.fit(
     model=cnn,
