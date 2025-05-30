@@ -117,7 +117,7 @@ class RotatedDataset(torch.utils.data.Dataset):
         inp = torch.rot90(inp, k, dims=(1, 2))
         return inp, out
 
-trainset = RotatedDataset(trainset)
+# trainset = RotatedDataset(trainset)
 # create dataloaders, with random rotation for x_train
 trainloader = DataLoader(
     trainset, batch_size=128, shuffle=True, num_workers=2
