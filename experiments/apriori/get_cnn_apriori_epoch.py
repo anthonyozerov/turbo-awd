@@ -68,12 +68,12 @@ datas = {k: v for k, v in datas.items() if k in datasets}
 
 # process each dataset
 results = {}
-for k, data in datas.items():
-    results[k] = {}
-    print(f"Processing dataset {k}")
+for setting, data in datas.items():
+    results[setting] = {}
+    print(f"Processing dataset {setting}")
 
     # create result directory for current dataset
-    os.makedirs(f"results/{k}", exist_ok=True)
+    os.makedirs(f"results/{setting}", exist_ok=True)
 
     # construct full paths to data files
     input_data_path = os.path.join(data["root"], data["input"])
@@ -89,8 +89,8 @@ for k, data in datas.items():
 
     # process each CNN model
     for e, paths in cnn_paths.items():
-        results[k][e] = {}
-        os.makedirs(f"results/{k}/{e}", exist_ok=True)
+        results[setting][e] = {}
+        os.makedirs(f"results/{setting}/{e}", exist_ok=True)
 
         config, name = load_cnn_config(config_paths[e])
 
@@ -121,7 +121,7 @@ for k, data in datas.items():
             )
 
             # apriori analysis of results
-            results[k][e][epoch] = apriori(
+            results[setting][e][epoch] = apriori(
                 cnn_outputs, input_data_path, output_data_path, output_norm_path, "IPI", before=num_images
             )
 
@@ -129,7 +129,11 @@ for k, data in datas.items():
                 save_dict[e][epoch] = cnn_outputs.squeeze()
 
     if save_h5:
-        with h5py.File(f"results/{k}/{output}.h5", "w") as f:
+        with h5py.File(f"results/{setting}/{output}.h5", "w") as f:
+            # load omega and psi
+            psiomega = load_data(input_data_path, ["psi", "omega"], before=num_images)
+            f.create_dataset("psiomega", data=psiomega)
+
             for k, v in save_dict.items():
                 if isinstance(v, dict):
                     group = f.create_group(k)
