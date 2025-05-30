@@ -56,11 +56,13 @@ def aposteriori(omegas, pis=None, psis=None):
     enstrophy_spectra = [get_enstrophy_spectrum(omegas[i])[0] for i in range(n)]
     enstrophy_spectrum = np.mean(np.array(enstrophy_spectra), axis=0)
     tke_spectra = [get_tke_spectrum(omegas[i])[0] for i in range(n)]
+    wavenumbers = get_tke_spectrum(omegas[0])[1]
     tke_spectrum = np.mean(np.array(tke_spectra), axis=0)
 
     result = dict(
         enstrophy_spectrum=enstrophy_spectrum,
         tke_spectrum=tke_spectrum,
+        wavenumbers=wavenumbers,
     )
     if pis is not None:
         result.update(

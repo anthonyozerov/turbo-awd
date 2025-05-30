@@ -368,23 +368,29 @@ def change_onnx_dims(model_path):
 
 
 def load_online_config(config_path,
+                       config_path_base="../online/configs/",
                        cnn_config_base="../cnn/configs/",
                        cnn_path_base="../cnn/trained-cnns/",
                        norm_path=None):
 
     assert os.path.exists(config_path), f"Invalid config path: {config_path}"
-    config_meta = yaml.safe_load(open(config_path, "r"))
+    assert os.path.exists(config_path_base), f"Invalid config path base: {config_path_base}"
+    assert os.path.exists(cnn_config_base), f"Invalid CNN config path base: {cnn_config_base}"
+    assert os.path.exists(cnn_path_base), f"Invalid CNN path base: {cnn_path_base}"
+    if norm_path is not None:
+        assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
 
+    config_meta = yaml.safe_load(open(config_path, "r"))
 
     physics = config_meta["physics"]
     resolution = config_meta["resolution"]
     sgsmodel = config_meta["sgsmodel"]
     boilerplate = config_meta["boilerplate"]
 
-    config_physics = yaml.safe_load(open(f"../online/configs/physics/{physics}.yaml", "r"))
-    config_resolution = yaml.safe_load(open(f"../online/configs/resolution/{resolution}.yaml", "r"))
-    config_sgsmodel = yaml.safe_load(open(f"../online/configs/sgsmodel/{sgsmodel}.yaml", "r"))
-    config_boilerplate = yaml.safe_load(open(f"../online/configs/boilerplate/{boilerplate}.yaml", "r"))
+    config_physics = yaml.safe_load(open(f"{config_path_base}/physics/{physics}.yaml", "r"))
+    config_resolution = yaml.safe_load(open(f"{config_path_base}/resolution/{resolution}.yaml", "r"))
+    config_sgsmodel = yaml.safe_load(open(f"{config_path_base}/sgsmodel/{sgsmodel}.yaml", "r"))
+    config_boilerplate = yaml.safe_load(open(f"{config_path_base}/boilerplate/{boilerplate}.yaml", "r"))
 
     config = {
         **config_meta,

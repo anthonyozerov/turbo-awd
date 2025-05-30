@@ -21,9 +21,27 @@ experiments = [
     '2025-02-23-d',
     '2025-02-27-b',
 ]
+multickpt_experiments = [
+    '2025-03-01-b'
+]
+
 # generate paths to CNN models and their configurations
-cnn_paths = [f"../cnn/trained-cnns/{e}.onnx" for e in experiments]
-config_paths = [f"../cnn/configs/{e}.yaml" for e in experiments]
+cnn_paths = {f"../cnn/trained-cnns/{e}.onnx" for e in experiments}
+config_paths = {f"../cnn/configs/{e}.yaml" for e in experiments+multickpt_experiments}
+
+# for experiments where we want to check multiple checkpoints,
+# we need to get all the paths to the .onnx files.
+for e in multickpt_experiments:
+    config_path = f"../cnn/configs/{e}.yaml"
+    # load all .onnx cnns in the directory for experiment
+    fnames = os.listdir(f"../cnn/checkpoints")
+    prefix = e + '_epoch'
+    fnames = [f"../cnn/checkpoints/{f}" for f in fnames if f.startswith(prefix) and f.endswith('.onnx')]
+    # fnames are of the form e-i.onnx, where i is the epoch number
+    # sort by epoch number
+    fnames.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
+    paths = [f"../cnn/checkpoints/{f}" for f in fnames]
+    cnn_paths[e] = [paths]
 
 # Load dataset definitions from YAML
 with open('data_defs.yaml', 'r') as f:
@@ -43,20 +61,26 @@ for k, data in datas.items():
 
     # process each CNN model
     for i in range(len(cnn_paths)):
-        cnn_path = cnn_paths[i]
+        cnn_paths_e = cnn_paths[i]
+        if not isinstance(cnn_paths_e, list):
+            cnn_paths_e = [cnn_paths_e]
 
-        # load CNN configuration and get model name
         config, name = load_cnn_config(config_paths[i])
-        # model_output_norm = os.path.join(config['data']['train_dir'], config['data']['norm_file'])
-        # NOTE: in transfer, using the normalization the model was trained with does not seem to work
-        # as well as using the normalization constants of the data itself.
-        # (when not transferring, both normalizations are the same)
 
-        # apply CNN to input data with specified parameters
-        cnn_outputs = apply_cnn(cnn_path, config, input_data_path, input_centerscale=True, batch_size=128,
-                                train_norm_path=output_norm_path, train_norm_key='IPI', force_gpu=True)
+        for k in range(len(cnn_paths_e)):
+            cnn_name = cnn_paths_e[k].split('/')[-1].split('.')[0]
 
-        # save CNN outputs to HDF5 file
-        output_path = f"results/{k}/{name}.h5"
-        with h5py.File(output_path, 'w') as f:
-            f.create_dataset('cnn_outputs', data=cnn_outputs)
+            # load CNN configuration and get model name
+            # model_output_norm = os.path.join(config['data']['train_dir'], config['data']['norm_file'])
+            # NOTE: in transfer, using the normalization the model was trained with does not seem to work
+            # as well as using the normalization constants of the data itself.
+            # (when not transferring, both normalizations are the same)
+
+            # apply CNN to input data with specified parameters
+            cnn_outputs = apply_cnn(cnn_paths_e[k], config, input_data_path, input_centerscale=True, batch_size=128,
+                                    train_norm_path=output_norm_path, train_norm_key='IPI', force_gpu=True)
+
+            # save CNN outputs to HDF5 file
+            output_path = f"results/{k}/{cnn_name}.h5"
+            with h5py.File(output_path, 'w') as f:
+                f.create_dataset('cnn_outputs', data=cnn_outputs)
