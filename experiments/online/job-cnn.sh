@@ -9,4 +9,4 @@
 #SBATCH --cpus-per-task=4
 
 
-conda run -n turboawd-online --live-stream python run_online.py $1
+conda run -n turboawd-online --live-stream python run_online.py $1 $2
