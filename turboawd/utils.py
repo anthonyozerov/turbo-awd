@@ -6,10 +6,12 @@ from tqdm import tqdm
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
 
-def plot_field(field, cmap='Spectral'):
+
+def plot_field(field, cmap="Spectral"):
     lim = np.max(np.abs(field))
     plt.imshow(field, cmap=cmap, vmin=-lim, vmax=lim)
     plt.colorbar()
+
 
 def load_cnn_config(config_path):
     """
@@ -163,7 +165,7 @@ def load_data(
             data = [np.array(f[key], np.float32) for key in keys]
     except OSError as e:
         print(e)
-        print('loading data using scipy loadmat')
+        print("loading data using scipy loadmat")
         mat = loadmat(path)
         data = [np.array(mat[key], np.float32) for key in keys]
 
@@ -262,7 +264,6 @@ def apply_cnn(
 
     import onnxruntime as rt
 
-
     if "nchw_map" in config:
         reorder = config["nchw_map"]
     if reorder is not None:
@@ -270,7 +271,7 @@ def apply_cnn(
 
     assert os.path.exists(onnx_path), f"Invalid ONNX path: {onnx_path}"
 
-    if 'residual' in config:
+    if "residual" in config:
         assert train_norm_path is not None
         assert train_norm_key is not None
 
@@ -324,7 +325,9 @@ def apply_cnn(
         output_data = denormalize(
             output_data, train_norm_path, [train_norm_key], sd_only=True
         )
-        residual = load_data(input_data_path, [config["residual"]], before=before, after=after)
+        residual = load_data(
+            input_data_path, [config["residual"]], before=before, after=after
+        )
         output_data += residual
         output_data = normalize(
             output_data, train_norm_path, [train_norm_key], sd_only=False
@@ -341,8 +344,10 @@ def apply_cnn(
 
 # force an ONNX model to accept arbitrary batch size
 
+
 def change_onnx_dims(model_path):
     import onnx
+
     # Use some symbolic name not used for any other dimension
     sym_batch_dim = "batch"
 
@@ -352,7 +357,6 @@ def change_onnx_dims(model_path):
     inputs = model.graph.input
 
     for input in inputs:
-
         # Checks omitted. This assumes that all inputs are tensors and have a shape with first dim.
         dim1 = input.type.tensor_type.shape.dim[0]
         # update dim to be a symbolic value
@@ -367,16 +371,18 @@ def change_onnx_dims(model_path):
     onnx.save(model, model_path)
 
 
-def load_online_config(config_path,
-                       config_path_base="../online/configs/",
-                       cnn_config_base="../cnn/configs/",
-                       cnn_path_base="../cnn/trained-cnns/",
-                       norm_path=None):
-
+def load_online_config(
+    config_path,
+    config_path_base="../online/configs/",
+    cnn_config_base="../cnn/configs/",
+    cnn_path_base="../cnn/trained-cnns/",
+    norm_path=None,
+):
     assert os.path.exists(config_path), f"Invalid config path: {config_path}"
-    assert os.path.exists(config_path_base), f"Invalid config path base: {config_path_base}"
-    assert os.path.exists(cnn_config_base), f"Invalid CNN config path base: {cnn_config_base}"
-    assert os.path.exists(cnn_path_base), f"Invalid CNN path base: {cnn_path_base}"
+    assert os.path.exists(
+        config_path_base
+    ), f"Invalid config path base: {config_path_base}"
+
     if norm_path is not None:
         assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
 
@@ -387,10 +393,18 @@ def load_online_config(config_path,
     sgsmodel = config_meta["sgsmodel"]
     boilerplate = config_meta["boilerplate"]
 
-    config_physics = yaml.safe_load(open(f"{config_path_base}/physics/{physics}.yaml", "r"))
-    config_resolution = yaml.safe_load(open(f"{config_path_base}/resolution/{resolution}.yaml", "r"))
-    config_sgsmodel = yaml.safe_load(open(f"{config_path_base}/sgsmodel/{sgsmodel}.yaml", "r"))
-    config_boilerplate = yaml.safe_load(open(f"{config_path_base}/boilerplate/{boilerplate}.yaml", "r"))
+    config_physics = yaml.safe_load(
+        open(f"{config_path_base}/physics/{physics}.yaml", "r")
+    )
+    config_resolution = yaml.safe_load(
+        open(f"{config_path_base}/resolution/{resolution}.yaml", "r")
+    )
+    config_sgsmodel = yaml.safe_load(
+        open(f"{config_path_base}/sgsmodel/{sgsmodel}.yaml", "r")
+    )
+    config_boilerplate = yaml.safe_load(
+        open(f"{config_path_base}/boilerplate/{boilerplate}.yaml", "r")
+    )
 
     config = {
         **config_meta,
@@ -400,33 +414,53 @@ def load_online_config(config_path,
         **config_boilerplate,
     }
 
-    if config["SGSModel_string"] == 'CNN':
+    if config["SGSModel_string"] == "CNN":
         assert "cnn" in config_meta
 
     if "cnn" in config_meta:
-        assert config['SGSModel_string'] == 'CNN'
-        assert 'input_stepnorm' in config
+        assert config["SGSModel_string"] == "CNN"
+        assert "input_stepnorm" in config
+        assert os.path.exists(cnn_path_base), f"Invalid CNN path base: {cnn_path_base}"
+        assert os.path.exists(
+            cnn_config_base
+        ), f"Invalid CNN config path base: {cnn_config_base}"
 
         cnn_name = config_meta["cnn"]
 
-        # remove the epoch postfix from the CNN name for loading the config
-        cnn_config_name = cnn_name.split('_epoch')[0]
-        cnn_config_path = f"{cnn_config_base}{cnn_config_name}.yaml"
-        print(cnn_config_path)
-        cnn_config = load_cnn_config(cnn_config_path)[0]
-
-        if norm_path is None:
-            norm_path = f"{cnn_config['data']['train_dir']}/{cnn_config['data']['norm_file']}"
-
-        assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
-        config['norm_path'] = norm_path
-
-
-
-        cnn_path = f"{cnn_path_base}{cnn_name}.onnx"
-        assert os.path.exists(cnn_path), f"Invalid CNN path: {cnn_path}"
-
-        config["cnn_config"] = cnn_config
-        config["cnn_path"] = cnn_path
+        # if there are multiple CNNs, load the config for each one
+        if isinstance(config_meta["cnn"], list):
+            config["cnn_config"] = []
+            for cnn_name in config_meta["cnn"]:
+                config["cnn_config"].append(
+                    _load_cnn_config(
+                        cnn_name, cnn_config_base, cnn_path_base, norm_path
+                    )
+                )
+        else:
+            config["cnn_config"] = _load_cnn_config(
+                config_meta["cnn"], cnn_config_base, cnn_path_base, norm_path
+            )
 
     return config
+
+
+def _load_cnn_config(cnn_name, cnn_config_base, cnn_path_base, norm_path):
+    # remove the epoch postfix from the CNN name for loading the config
+    cnn_config_name = cnn_name.split("_epoch")[0]
+    cnn_config_path = f"{cnn_config_base}{cnn_config_name}.yaml"
+    print(cnn_config_path)
+    cnn_config = load_cnn_config(cnn_config_path)[0]
+
+    if norm_path is None:
+        norm_path = (
+            f"{cnn_config['data']['train_dir']}/{cnn_config['data']['norm_file']}"
+        )
+
+    assert os.path.exists(norm_path), f"Invalid normalization path: {norm_path}"
+    cnn_config["norm_path"] = norm_path
+
+    cnn_path = f"{cnn_path_base}{cnn_name}.onnx"
+    assert os.path.exists(cnn_path), f"Invalid CNN path: {cnn_path}"
+    cnn_config["cnn_path"] = cnn_path
+
+    return cnn_config
