@@ -11,7 +11,7 @@ input_stepnorm: True
 
 mixing_var: omega
 mixing_quantile: 0.8
-mixing_quantile_mode: 'secondcnnbelow'
+mixing_quantile_mode: 'firstcnnabove'
 
 physics: re20k-kf25
 resolution: normal
