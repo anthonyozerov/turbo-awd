@@ -9,12 +9,19 @@ import h5py
 import numpy as np
 import random
 import glob
+import random
 
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from torch.utils.data import DataLoader, TensorDataset
+from lightning.pytorch import Trainer
 
 from turboawd.utils import load_online_config, load_data
+
+# set random seed
+random.seed(0)
+np.random.seed(0)
+torch.manual_seed(0)
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -54,6 +61,7 @@ ys_test = []
 n_models = sum([len(epoch_sd_results[name]) for name in online_config_names])
 n_train = np.floor(n_models * 0.7)
 
+np.random.seed(0)
 train_idx = np.random.choice(n_models, int(n_train), replace=False)
 
 print('creating dataset')
@@ -171,9 +179,6 @@ class Net(nn.Module):
 
 net = Net()
 
-import lightning as L
-from lightning.pytorch import Trainer
-
 class CNN(L.LightningModule):
     def __init__(self, net, verbose=False):
         super().__init__()
@@ -217,7 +222,7 @@ class CNN(L.LightningModule):
         self.log_dict(loss, on_epoch=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.net.parameters(), lr=2e-5)
+        optimizer = torch.optim.Adam(self.net.parameters(), lr=1e-3)
         return optimizer
 
 # Initialize the CNN model
