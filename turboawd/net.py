@@ -15,20 +15,20 @@ class Net(nn.Module):
 
         else:
             self.conv1 = nn.Conv2d(
-                in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same"
+                in_channels=n_channels, out_channels=l1, kernel_size=l2, padding="same", padding_mode="circular"
             )  # Input layer
 
         self.conv_hidden = []
         for i in range(n_hidden_layers):
             self.conv_hidden.append(
                 nn.Conv2d(
-                    in_channels=l1, out_channels=l1, kernel_size=l2, padding="same"
+                    in_channels=l1, out_channels=l1, kernel_size=l2, padding="same", padding_mode="circular"
                 )
             )
         self.conv_hidden = nn.ModuleList(self.conv_hidden)
 
         self.conv2 = nn.Conv2d(
-            in_channels=l1, out_channels=n_channels_out, kernel_size=l2, padding="same"
+            in_channels=l1, out_channels=n_channels_out, kernel_size=l2, padding="same", padding_mode="circular"
         )  # Output layer
 
     def forward(self, x):
