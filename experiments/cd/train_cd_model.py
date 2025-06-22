@@ -200,7 +200,7 @@ class CNN(L.LightningModule):
 
         self.log_dict(loss, on_epoch=True)
 
-        return loss["l1"]
+        return loss["mse"]
     
     def validation_step(self, batch, batch_idx):
         x, y = batch
