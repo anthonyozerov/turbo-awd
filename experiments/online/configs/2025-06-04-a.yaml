@@ -9,9 +9,11 @@ cnn: [2025-03-01-b_epoch1300, 2025-03-01-b_epoch1200]
 library: onnx
 input_stepnorm: True
 
-mixing_var: omega
-mixing_quantile: 0.8
-mixing_quantile_mode: 'firstcnnbelow'
+mixing:
+  mode: 'quantile'
+  quantile: 0.8
+  var: 'omega'
+  quantile_mode: 'firstcnnbelow'
 
 physics: re20k-kf25
 resolution: normal
