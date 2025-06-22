@@ -1,0 +1,24 @@
+# short-term residual CNN run A->A
+# an ablation study.
+# the over-trained 2025-03-01-b_epoch1300 is used for middle regions,
+# and the good 2025-03-01-b_epoch1200 is used for edge regions
+
+sgsmodel: cnn
+cnn: [2025-03-01-b_epoch1300, 2025-03-01-b_epoch1200]
+library: onnx
+input_stepnorm: True
+
+# first cnn used for middle, second cnn used for edge
+mixing:
+  mode: 'edge'
+  edge_width: 1
+
+physics: re20k-kf25
+resolution: normal
+boilerplate: boilerplate
+
+# Total time to run
+tTotal: 10
+# Time interval at which to save
+tSAVE: 5.0e-1
+ICNum: A0
