@@ -13,7 +13,7 @@ print(config)
 dir_path = config_path.split('.')[0]
 os.makedirs(dir_path, exist_ok=True)
 
-cnn_base_path = config['cnn_path']
+cnn_base_path = config['cnn_config']['cnn_path']
 main_cnn_name = os.path.basename(cnn_base_path).strip('.onnx')
 print(main_cnn_name)
 
